@@ -37,19 +37,18 @@ footer{grid-area:footer;}
 .imgTexto{grid-area:imgP;}
 .parrafoDer{grid-area:pDer;}
 /* ----- PRODU */
-.gridMainProductos{
+.gridMainProyectos{
     display:grid;
     grid-template-areas:
-    "tituloProdu tituloProdu tituloProdu tituloProdu"
-    "prodA prodB prodC prodD";
-    grid-template-columns: 25% 25% 25% 25%; /*repeat(cantidad de columnas, tamaño de columna) repeat(4, 25%) */
-    grid-template-rows: auto auto;
+    "tituloProdu tituloProdu tituloProdu"
+    "prodA prodB prodC";
+    grid-template-columns: 33% 33% 33% ; /*repeat(cantidad de columnas, tamaño de columna) repeat(4, 25%) */
+    grid-template-rows: auto auto auto;
 }
 .tituloProdu{grid-area: tituloProdu;}
 .prodA{grid-area:prodA;}
 .prodB{grid-area:prodB;}
 .prodC{grid-area:prodC;}
-.prodD{grid-area:prodD;}
 
 /* GRID */
 header, ul, footer{display: flex;}
@@ -67,7 +66,7 @@ a{text-decoration: none;font-size:22px;}
 h1{text-align: center;}
 body{margin:0;}
 .bgPrincipal{background-color:aqua;}
-.prod{background-color:lightpink;padding:5px;margin:10px;border-radius:20px;}
+.prod{background-color:lightblue;padding:5px;margin: 5px;border-radius:20px;}
 h4{text-align:center;}
 img{border-radius: 20px;}
 /* GENERAL */
