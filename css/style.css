@@ -48,21 +48,21 @@ footer{grid-area:footer;}
 .prodB{grid-area:prodB;}
 .prodC{grid-area:prodC;}
 
-/* GRID */
-header, ul, footer{display: flex;}/* se acomodo con fexbox el header y footer */
-.jusConBetween{justify-content: space-between;}
 /* FLEX*/
+header, ul, footer{display: flex;}/* se acomodo con fexbox el header y footer */
+.producto{justify-content: space-between;}
+
+
+/* BOX MODEL*/
 li{padding:20px;}
-.mb20{margin-bottom: 0px;}
 .mt20{margin-top:20px;}
 .p20{padding:20px;}
-.img-fluid{width:100%;height: 400px;}/* para evitar el overflow .imgFluid{
-    width: 100%;height: 400px;
-    
-}*/
+.img-fluid{width:100%;height: 400px;}/* para evitar el overflow */
 .prod img{border-bottom: 2px solid cyan;}
 .imgr{width: 100%;height: 400px; margin-top: 60px;}
-/* BOX MODEL*/
+
+
+/* GENERAL */
 ul{list-style-type: none;}
 a{text-decoration: none;font-size:22px;}
 h1{text-align: center;}
@@ -80,5 +80,5 @@ header{
 }
   
 
-/* GENERAL */
+
 
