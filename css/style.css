@@ -1,12 +1,10 @@
-/* .grid div{border: 1px solid black;} */
+/* primero grillas,flexbox y box modeling */
 .grid{
     display:grid; /*propiedad que nos habilita el uso de grillas*/
    /*grid-template-columns:300px 100px; acepta valores en px, % y fr. Los valores pueden ir separados por un espacio. Los valores van a representar el tamaño de ancho de cada columna.*/
     /*grid-template-rows:100px 400px; acepta valores en px, %, fr y auto. Los valores puede ir separados por un espacio. Los valores representan el tamaño de alto de cada fila*/
-    /* grid-template-rows:600px 200px 100px 200px;
-    grid-template-columns:1fr; */
-    grid-template-columns:30% 70%;
-    grid-template-rows:auto auto;
+    /*grid-template-columns:30% 70%;
+    grid-template-rows:auto auto;*/
 }
 .grid{
     /* 1 columna y 3 filas */
@@ -68,5 +66,9 @@ body{margin:0;}
 .bgPrincipal{background-color:aqua;}
 .prod{background-color:lightblue;padding:5px;margin: 5px;border-radius:20px;}
 h4{text-align:center;}
-img{border-radius: 20px;}
+img{border-radius: 20px;
+width: 90%;}
+iframe{border-radius: 20px;}   
+
 /* GENERAL */
+
