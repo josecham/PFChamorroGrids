@@ -59,7 +59,7 @@ li{padding:20px;}
 .p20{padding:20px;}
 .img-fluid{width:100%;height: 400px;}/* para evitar el overflow */
 .prod img{border-bottom: 2px solid cyan;}
-.imgr{width: 100%;height: 900px; margin-top: 60px;}
+.imgr{width: 90%; margin-top: 60px;}
 
 
 /* GENERAL */
@@ -93,7 +93,15 @@ header{
     margin-left: 150px;
     border-radius:20px;
 }
-  
+.selector {
+    /* definir una altura para el scroll */
+    height:80%;
+    overflow-y: scroll;
+    width: 90%;
+    /* cambiar el estilo por defecto de la barra de scroll */
+    scrollbar-color: aqua rgb(202, 202, 196);
+    scrollbar-width: 10px;
+}
 
 
 
