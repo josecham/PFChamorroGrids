@@ -17,7 +17,19 @@ iframe{border-radius: 20px;margin:20px;}
 header{
     position: sticky; top: 0px;
 }
-
+/* INPUT */
+input:focus{
+    height: 100px;
+    font-size:30px;
+    background-color:lightgrey;
+    color:white;
+}
+/* VARIABLES */
+:root{
+    --bg-principal:aqua;
+    --f-s-p-desktop:30px;
+}
+header{background-color:var(--bg-principal)}
 
 
 
@@ -92,7 +104,7 @@ img{
 }
 .colorform{
     background-color:aqua;
-    font-size:10px;
+    
     width: 200px;
     border-radius:20px;
     margin:20px;
@@ -101,32 +113,18 @@ img{
     width: 227px;
     height: 20px;     
  }
+/* LA PSEUDOCLASES */
+a{text-decoration: none;color:blue;transition:1s all;}
 
-/* GENERAL 
-ul{list-style-type: none;}
-a{text-decoration: none;font-size:22px;}
-h1{text-align: center; color:blue;font-size: 40px;
-    font-family:Arial, Helvetica, sans-serif;}
-p{
-    font-family:'Courier New', Courier, monospace;
+a:hover{
+    color:chartreuse;
     font-size:20px;
-    font-weight:normal;
-    font-style:normal;
-}
-body{margin:0; background-color: aliceblue;}
-.bgPrincipal{background-color:aqua;}
-.prod{background-color:lightblue;padding:5px;margin: 5px;border-radius:20px;}
+    background-color:blue;
+    padding:10px;
+    border-radius: 20px;
+} 
 
-h4{text-align:center;}
-img{
-border-radius: 20px;
-width: 100%;
-}
-iframe{border-radius: 20px;}
-header{
-    position: sticky; top: 0px;
-}
-*/
+
 
 .selector {
     /* definir una altura para el scroll */
@@ -160,16 +158,16 @@ header{
     img{border-radius: 20px;margin: 20px}
     .colorform{
         background-color:aqua;
-        font-size:10px;
+        font-size:14px;
         width: 200px;
-        height: 240px;
+        
         margin-left: 150px;
         border-radius:20px;
         margin:20px;
     }
     .elemento{
     
-       width: 210px;
+       width: 96%;
        height: 20px;
           
     }
