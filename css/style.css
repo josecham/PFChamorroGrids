@@ -11,6 +11,7 @@ p{
     font-weight:normal;
     font-style:normal;
 }
+.p20{padding:20px;}
 h4{text-align:center;}
 
 iframe{border-radius: 20px;margin:20px;}
@@ -30,7 +31,9 @@ input:focus{
     --f-s-p-desktop:30px;
 }
 header{background-color:var(--bg-principal)}
-
+.mensaje{
+    border-radius: 20px
+}
 
 
 /* DESKTOP */
@@ -78,7 +81,7 @@ footer{grid-area:footer;}
     grid-template-areas:
     "tituloProdu tituloProdu tituloProdu"/* una fila con una columna */
     "prodA prodB prodC";/* una fila con tres columnas */
-    grid-template-columns: 33% 33% 33% ; 
+    grid-template-columns: 33% 33% 34% ; 
     grid-template-rows: auto auto auto;
 }
 .tituloProdu{grid-area: tituloProdu;}
@@ -94,13 +97,12 @@ header, ul, footer{display: flex;}/* se acomodo con fexbox el header y footer */
 /* BOX MODEL*/
 li{padding:20px;}
 .mt20{margin-top:20px;}
-.p20{padding:20px;}
-.img-fluid{width:97%;height: 400px;}/* para evitar el overflow */
+.img-fluid{width:100%;height: 400px;}/* para evitar el overflow */
 .prod img{border-bottom: 2px solid cyan;}
 .imgr{width: 90%; margin-top: 60px;}
 img{
     border-radius: 20px;
-    margin:20px;
+    
 }
 .colorform{
     background-color:aqua;
@@ -111,7 +113,8 @@ img{
 }
 .elemento{
     width: 227px;
-    height: 20px;     
+    height: 20px;
+    border-radius: 20px 
  }
 /* LA PSEUDOCLASES */
 a{text-decoration: none;color:blue;transition:1s all;}
@@ -124,17 +127,6 @@ a:hover{
     border-radius: 20px;
 } 
 
-
-
-.selector {
-    /* definir una altura para el scroll */
-    height:80%;
-    overflow-y: scroll;
-    width: 90%;
-    /* cambiar el estilo por defecto de la barra de scroll */
-    scrollbar-color: aqua rgb(202, 202, 196);
-    scrollbar-width: 10px;
-}
 }
 
 /* MOBILE */
@@ -146,6 +138,7 @@ a:hover{
     .gridMainProyectos{
         display:flex;
         flex-direction: column;
+        align-items: center;
         row-gap: 10px;
     }
     h3{
@@ -166,9 +159,12 @@ a:hover{
         margin:20px;
     }
     .elemento{
-    
        width: 96%;
        height: 20px;
-          
+       border-radius: 20px 
     }
+    img{
+        margin:20px;
+    }
+    
 }
