@@ -1,10 +1,10 @@
 /* GENERAL */
+
 ul{list-style-type: none;}
 a{text-decoration: none;font-size:22px;}
 h1{text-align: center; color:blue;font-size: 40px;
 font-family:Arial, Helvetica, sans-serif;}
-.bgPrincipal{background-color:aqua;}
-body{margin:0; background-color: aliceblue;}
+/*.bgPrincipal{background-color:aqua;}*/
 p{
     font-family:'Courier New', Courier, monospace;
     font-size:20px;
@@ -13,7 +13,6 @@ p{
 }
 .p20{padding:20px;}
 h4{text-align:center;}
-
 iframe{border-radius: 20px;margin:20px;}
 header{
     position: sticky; top: 0px;
@@ -34,9 +33,18 @@ header{background-color:var(--bg-principal)}
 .mensaje{
     border-radius: 20px
 }
+/* BEM */
+/* BLOQUE */
+body{margin:0; background-color: aliceblue;}
+.producto{
+    background-color:var(--bg-principal);
+    display:flex;
+    justify-content: space-between;
+}
 
 
 /* DESKTOP */
+
 @media (min-width:1024px){
     /* GRID INDEX */
 /* primero grillas,flexbox y box modeling */
@@ -56,8 +64,7 @@ header{background-color:var(--bg-principal)}
 /* cada etiqueta a que parte representa */
 header{grid-area: header;}
 main{grid-area: main;}
-footer{grid-area:footer;}
-
+/*footer{grid-area:footer;}*/
 /* un grid dentro de otro grid */
 .gridMainIndex{
     display:grid;
@@ -68,13 +75,11 @@ footer{grid-area:footer;}
     grid-template-columns: 50% 50%;
     grid-template-rows: auto auto;
 }
-
 /* cada clase a que parte representa */
 .imgPrincipal{grid-area:imgPrincipal;}
 .titulo{grid-area: titulo;}
 .parrafoIzq{grid-area:pIzq;}
 .imgTexto{grid-area:imgP;}
-
 /* un grid dentro de otro grid proyecto */
 .gridMainProyectos{
     display:grid;
@@ -88,12 +93,10 @@ footer{grid-area:footer;}
 .prodA{grid-area:prodA;}
 .prodB{grid-area:prodB;}
 .prodC{grid-area:prodC;}
-
 /* FLEX*/
 header, ul, footer{display: flex;}/* se acomodo con fexbox el header y footer */
-.producto{justify-content: space-between;}
+/*.producto{justify-content: space-between;}*/
 .align-items-center{align-items: center;}
-
 /* BOX MODEL*/
 li{padding:20px;}
 .mt20{margin-top:20px;}
@@ -102,11 +105,9 @@ li{padding:20px;}
 .imgr{width: 90%; margin-top: 60px;}
 img{
     border-radius: 20px;
-    
 }
 .colorform{
     background-color:aqua;
-    
     width: 200px;
     border-radius:20px;
     margin:20px;
@@ -118,7 +119,6 @@ img{
  }
 /* LA PSEUDOCLASES */
 a{text-decoration: none;color:blue;transition:1s all;}
-
 a:hover{
     color:chartreuse;
     font-size:20px;
@@ -126,10 +126,10 @@ a:hover{
     padding:10px;
     border-radius: 20px;
 } 
-
 }
 
 /* MOBILE */
+
 @media (max-width:768px){
     header,main,footer{display:flex;flex-direction: column;align-items: center;}
     ul{display:flex;padding:0;}
@@ -152,8 +152,7 @@ a:hover{
     .colorform{
         background-color:aqua;
         font-size:14px;
-        width: 200px;
-        
+        width: 200px; 
         margin-left: 150px;
         border-radius:20px;
         margin:20px;
@@ -165,6 +164,5 @@ a:hover{
     }
     img{
         margin:20px;
-    }
-    
+    }   
 }
