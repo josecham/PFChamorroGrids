@@ -11,7 +11,7 @@ p{
     font-weight:normal;
     font-style:normal;
 }
-.p20{padding:20px;}
+
 h4{text-align:center;}
 iframe{border-radius: 20px;margin:20px;}
 header{
@@ -36,7 +36,11 @@ header{background-color:var(--bg-principal)}
 /* BEM */
 /* BLOQUE */
 body{margin:0; background-color: aliceblue;}
-
+.producto{
+    background-color:var(--bg-principal);
+    display:flex;
+    justify-content: space-between;
+}
 
 
 /* DESKTOP */
@@ -57,11 +61,7 @@ body{margin:0; background-color: aliceblue;}
     grid-template-columns:100%;
     grid-template-rows:auto auto auto;
 }
-.producto{
-    background-color:var(--bg-principal);
-    display:flex;
-    justify-content: space-between;
-}
+
 /* cada etiqueta a que parte representa */
 header{grid-area: header;}
 main{grid-area: main;}
@@ -104,6 +104,7 @@ li{padding:20px;}
 .img-fluid{width:100%;height: 400px;}/* para evitar el overflow */
 .prod img{border-bottom: 2px solid cyan;}
 .imgr{width: 90%; margin-top: 60px;}
+.p20{padding:20px;}
 img{
     border-radius: 20px;
 }
@@ -132,9 +133,10 @@ a:hover{
 /* MOBILE */
 
 @media (max-width:768px){
-    main,footer{display:flex;flex-direction:column;align-items: center;}
-    ul{display:flex;padding:0;}
+    header,main,footer{display:flex;flex-direction:column;align-items: center;}
+    ul{display:flex;padding:0;flex-direction: column}
     a{color:black;font-size:22px;padding:5px;margin:5px;}
+    nav{display:flex;flex-direction: column;}
     p{font-size:22px;}
     
     .gridMainProyectos{
@@ -150,7 +152,7 @@ a:hover{
         text-align: center;
     }
     .img-fluid{width: 95%;border-radius:20px;}/* para evitar el overflow */
-    img{border-radius: 20px;margin: 20px}
+    img{border-radius: 20px;margin: 20px;}
     .colorform{
         background-color:aqua;
         font-size:14px;
@@ -164,13 +166,17 @@ a:hover{
        height: 20px;
        border-radius: 20px 
     }
-    img{
+    .centralimg{
         margin:20px;
-        align-items: center;
+        
+        border-radius: 20px;
+        width: 90%;
     } 
-    .pie{
-        background-color:var(--bg-principal);
-    }
-    .cabeza{ padding-left: 250px;}
+    iframe {
+        border-radius: 20px;
+       
+        width: 90%;
+      }
+    
 }
 
