@@ -1,0 +1,31 @@
+h1{text-align: center; color:blue;font-size: 40px;
+    font-family:Arial, Helvetica, sans-serif;}
+    /*.bgPrincipal{background-color:aqua;}*/
+    p{
+        font-family:'Courier New', Courier, monospace;
+        font-size:20px;
+        font-weight:normal;
+        font-style:normal;
+    }
+    
+    h4{text-align:center;}
+    iframe{border-radius: 20px;margin:20px;}
+/* INPUT */
+input:focus{
+    height: 100px;
+    font-size:30px;
+    background-color:lightgrey;
+    color:white;
+}
+/* VARIABLES */
+:root{
+    --bg-principal:aqua;
+    --f-s-p-desktop:30px;
+}
+
+.mensaje{
+    border-radius: 20px
+}
+/* BEM */
+/* BLOQUE */
+body{margin:0; background-color: aliceblue;}

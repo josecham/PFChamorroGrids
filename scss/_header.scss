@@ -1,0 +1,14 @@
+/* GENERAL */
+
+ul{list-style-type: none;}
+a{text-decoration: none;font-size:22px;}
+
+header{
+    position: sticky; top: 0px;
+}
+.producto{
+    background-color:var(--bg-principal);
+    display:flex;
+    justify-content: space-between;
+}
+header{background-color:var(--bg-principal)}
