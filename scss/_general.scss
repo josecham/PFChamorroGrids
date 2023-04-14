@@ -1,4 +1,4 @@
-h1{text-align: center; color:blue;font-size: 40px;
+h1{text-align: center; color:$primary-color;font-size: 40px;
     font-family:Arial, Helvetica, sans-serif;}
     /*.bgPrincipal{background-color:aqua;}*/
     p{
@@ -6,8 +6,9 @@ h1{text-align: center; color:blue;font-size: 40px;
         font-size:20px;
         font-weight:normal;
         font-style:normal;
+        color:$colorPrincipal;
     }
-    
+    h3{color:$color-secuandario;}
     h4{text-align:center;}
     iframe{border-radius: 20px;margin:20px;}
 /* INPUT */
@@ -17,15 +18,13 @@ input:focus{
     background-color:lightgrey;
     color:white;
 }
-/* VARIABLES */
 :root{
     --bg-principal:aqua;
     --f-s-p-desktop:30px;
 }
-
 .mensaje{
     border-radius: 20px
 }
 /* BEM */
 /* BLOQUE */
-body{margin:0; background-color: aliceblue;}
+body{margin:0; background-color:$body-color;}
