@@ -5,8 +5,10 @@
     ul{display:flex;padding:0;flex-direction:column;}
     a{color:black;display:flex;flex-direction:column;align-items: center;}
     nav{display:flex;flex-direction: column;}
-    p{text-align: center;}
-    li{padding:15px;}
+    p{text-align:center;font-size:18px;font-weight:normal;
+        font-style:normal;
+        color:$colorPrincipal;}
+    li{padding:0px;}
     
     .gridMainProyectos{
         display:flex;

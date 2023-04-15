@@ -93,9 +93,13 @@ header {
   }
   p {
     text-align: center;
+    font-size: 18px;
+    font-weight: normal;
+    font-style: normal;
+    color: black;
   }
   li {
-    padding: 15px;
+    padding: 0px;
   }
   .gridMainProyectos {
     display: flex;
