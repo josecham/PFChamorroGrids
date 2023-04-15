@@ -7,14 +7,6 @@ h1 {
 }
 
 /*.bgPrincipal{background-color:aqua;}*/
-p {
-  font-family: "Courier New", Courier, monospace;
-  font-size: 20px;
-  font-weight: normal;
-  font-style: normal;
-  color: black;
-}
-
 h3 {
   color: darkcyan;
 }
@@ -263,6 +255,13 @@ header {
     background-color: blue;
     padding: 10px;
     border-radius: 20px;
+  }
+  p {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 20px;
+    font-weight: normal;
+    font-style: normal;
+    color: black;
   }
 }
 ul, footer {
