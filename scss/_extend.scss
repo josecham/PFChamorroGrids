@@ -1,0 +1,25 @@
+
+.boton{
+    color:chartreuse;
+    font-size:20px;
+    background-color:blue;
+    padding:10px;
+    border-radius: 20px;
+}
+
+@each $contexto in error {
+    .boton-#{$contexto}{
+        @extend .boton;
+    }
+}
+
+.boton-error{
+    background-color:rgb(94, 89, 89);
+}
+.boton-primario{
+    color:chartreuse;
+    font-size:20px;
+    background-color:blue;
+    padding:10px;
+    border-radius: 20px;
+}
