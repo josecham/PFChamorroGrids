@@ -3,7 +3,7 @@
 @media (max-width:768px){
     header,main,footer{display:flex;flex-direction:column;align-items: center;}
     ul{display:flex;padding:0;flex-direction:column;}
-    a{color:black;font-size:22px;padding:80px;margin:60px;}
+    a{color:black;display:flex;flex-direction:column;align-items: center;}
     nav{display:flex;flex-direction: column;}
     p{font-size:22px;text-align: center;}
     li{padding:15px;}
