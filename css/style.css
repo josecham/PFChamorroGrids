@@ -103,6 +103,9 @@ header {
     font-size: 22px;
     text-align: center;
   }
+  li {
+    padding: 15px;
+  }
   .gridMainProyectos {
     display: flex;
     flex-direction: column;
