@@ -120,8 +120,10 @@ header {
   }
   .colorform {
     background-color: aqua;
-    margin: 70px;
+    font-size: 14px;
+    margin: 30px;
     border-radius: 20px;
+    width: 200px;
   }
   .elemento {
     width: 96%;
