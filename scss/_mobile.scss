@@ -26,11 +26,10 @@
     img{border-radius: 20px;}
     .colorform{
         background-color:aqua;
-        font-size:14px;
-        width: 200px; 
-        margin-left: 150px;
-        border-radius:20px;
-        margin:20px;
+        margin-left: 50px;
+        border-radius:20px; 
+        margin-right: 200px;
+        margin-top: 80px;
     }
     .elemento{
        width: 96%;
@@ -38,8 +37,7 @@
        border-radius: 20px 
     }
     .centralimg{
-        margin:20px;
-        
+        margin:20px; 
         border-radius: 20px;
         width: 90%;
     } 
@@ -47,7 +45,9 @@
         border-radius: 20px;
         width: 90%;
     }
-
+    .botonproyecto{
+        margin-left: 200px;
+    }
 
 
 }

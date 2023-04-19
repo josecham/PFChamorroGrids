@@ -120,11 +120,10 @@ header {
   }
   .colorform {
     background-color: aqua;
-    font-size: 14px;
-    width: 200px;
-    margin-left: 150px;
+    margin-left: 50px;
     border-radius: 20px;
-    margin: 20px;
+    margin-right: 200px;
+    margin-top: 80px;
   }
   .elemento {
     width: 96%;
@@ -139,6 +138,9 @@ header {
   iframe {
     border-radius: 20px;
     width: 90%;
+  }
+  .botonproyecto {
+    margin-left: 200px;
   }
 }
 /* DESKTOP */
@@ -314,6 +316,10 @@ footer {
   transform: scale(1.5, 1.5);
 }
 
+.translate {
+  transform: translate(80px, -50px);
+}
+
 @keyframes animacion-logo {
   0% {
     transform: translate(50px, -50px);
@@ -333,6 +339,14 @@ footer {
   100% {
     transform: translate(0, 0);
   }
+}
+p {
+  font-size: 20px;
+  transition: all 1s;
+}
+p:hover {
+  padding: 20px;
+  font-size: 25px;
 }
 
 /*# sourceMappingURL=style.css.map */
