@@ -120,10 +120,8 @@ header {
   }
   .colorform {
     background-color: aqua;
-    margin-left: 50px;
+    margin: 70px;
     border-radius: 20px;
-    margin-right: 200px;
-    margin-top: 80px;
   }
   .elemento {
     width: 96%;
@@ -314,10 +312,6 @@ footer {
 }
 .scale:hover {
   transform: scale(1.5, 1.5);
-}
-
-.translate {
-  transform: translate(80px, -50px);
 }
 
 @keyframes animacion-logo {
