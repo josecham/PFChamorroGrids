@@ -118,7 +118,7 @@ header {
   img {
     border-radius: 20px;
   }
-  .colorform {
+  .formmobile {
     background-color: aqua;
     font-size: 14px;
     margin: 30px;
@@ -236,16 +236,18 @@ header {
   img {
     border-radius: 20px;
   }
-  .colorform {
+  .formdesktop {
     background-color: aqua;
-    width: 200px;
     border-radius: 20px;
-    margin: 100px;
   }
   .elemento {
-    width: 227px;
-    height: 20px;
+    width: 96%;
+    height: 30px;
     border-radius: 20px;
+  }
+  .mensaje {
+    width: 531px;
+    height: 175px;
   }
   /* LA PSEUDOCLASES */
   a {
