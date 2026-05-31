@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trading Journal Pro V2</title>
+    <title>Trading Journal Pro V3</title>
     
     <!-- PWA Setup -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,7 +11,6 @@
     <meta name="theme-color" content="#0b0e11">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js para el gráfico de rendimiento -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
@@ -52,20 +51,26 @@
 
         function App() {
             const hoy = new Date();
-            const añoActual = hoy.getFullYear();
-            const mesActual = hoy.getMonth();
+            
+            // Estado de navegación de fecha (Mes y Año en vista)
+            const [mesVista, setMesVista] = useState(hoy.getMonth());
+            const [añoVista, setAñoVista] = useState(hoy.getFullYear());
 
-            // Pestaña activa: 'calendario' o 'metricas'
             const [vista, setVista] = useState('calendario');
 
-            // Historial de trades iniciales ordenados por ID (tiempo de carga)
-            const [trades, setTrades] = useState([
-                { id: 1, activo: 'BTC', resultado: 601.00, estado: 'WIN', dia: 6 },
-                { id: 2, activo: 'ETH', resultado: 2278.00, estado: 'WIN', dia: 18 },
-                { id: 3, activo: 'SOL', resultado: -1802.00, estado: 'LOSS', dia: 20 },
-                { id: 4, activo: 'ADA', resultado: -553.00, estado: 'LOSS', dia: 26 },
-                { id: 5, activo: 'DOT', resultado: -6880.00, estado: 'LOSS', dia: 27 }
-            ]);
+            // Cargar los trades desde localStorage al iniciar, o usar ejemplos si está vacío
+            const [trades, setTrades] = useState(() => {
+                const guardados = localStorage.getItem('trading_journal_trades');
+                if (guardados) {
+                    return JSON.parse(guardados);
+                } else {
+                    return [
+                        { id: 1717113600000, activo: 'BTC', resultado: 601.00, estado: 'WIN', dia: 6, mes: 4, año: 2026 },
+                        { id: 1717113600001, activo: 'ETH', resultado: 2278.00, estado: 'WIN', dia: 18, mes: 4, año: 2026 },
+                        { id: 1717113600002, activo: 'SOL', resultado: -1802.00, estado: 'LOSS', dia: 20, mes: 4, año: 2026 }
+                    ];
+                }
+            });
 
             const [activo, setActivo] = useState('');
             const [resultado, setResultado] = useState('');
@@ -75,35 +80,69 @@
             const chartRef = useRef(null);
             const chartInstance = useRef(null);
 
-            // --- Lógica del Calendario ---
+            // Guardar en localStorage de forma automática cada vez que cambien los trades
+            useEffect(() => {
+                localStorage.setItem('trading_journal_trades', JSON.stringify(trades));
+            }, [trades]);
+
+            // Ajustar el día seleccionado si cambiamos a un mes con menos días
+            useEffect(() => {
+                const maxDias = new Date(añoVista, mesVista + 1, 0).getDate();
+                if (diaSeleccionado > maxDias) {
+                    setDiaSeleccionado(maxDias);
+                }
+            }, [mesVista, añoVista]);
+
+            // --- Lógica del Calendario Dinámico ---
             const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
             const diasSemana = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
             
-            const primerDiaIndex = new Date(añoActual, mesActual, 1).getDay();
-            const totalDiasMes = new Date(añoActual, mesActual + 1, 0).getDate();
+            const primerDiaIndex = new Date(añoVista, mesVista, 1).getDay();
+            const totalDiasMes = new Date(añoVista, mesVista + 1, 0).getDate();
+
+            // Filtrar trades pertenecientes EXCLUSIVAMENTE al mes y año en vista
+            const tradesDelMesActual = trades.filter(t => t.mes === mesVista && t.año === añoVista);
 
             const obtenerDataDia = (nroDia) => {
-                const tradesDelDia = trades.filter(t => t.dia === nroDia);
+                const tradesDelDia = tradesDelMesActual.filter(t => t.dia === nroDia);
                 if (tradesDelDia.length === 0) return null;
                 const pnlTotal = tradesDelDia.reduce((acc, t) => acc + t.resultado, 0);
                 return { pnl: pnlTotal, count: tradesDelDia.length };
             };
 
-            // Acciones de datos
+            const cambiarMes = (direccion) => {
+                if (direccion === 'prev') {
+                    if (mesVista === 0) {
+                        setMesVista(11);
+                        setAñoVista(añoVista - 1);
+                    } else {
+                        setMesVista(mesVista - 1);
+                    }
+                } else {
+                    if (mesVista === 11) {
+                        setMesVista(0);
+                        setAñoVista(añoVista + 1);
+                    } else {
+                        setMesVista(mesVista + 1);
+                    }
+                }
+            };
+
             const agregarTrade = (e) => {
                 e.preventDefault();
                 if (!activo || !resultado) return;
 
                 const monto = parseFloat(resultado);
                 const nuevoTrade = {
-                    id: Date.now(),
+                    id: Date.now(), // Timestamp único que sirve para ordenar cronológicamente
                     activo: activo.toUpperCase(),
                     resultado: estado === 'WIN' ? Math.abs(monto) : -Math.abs(monto),
                     estado,
-                    dia: parseInt(diaSeleccionado)
+                    dia: parseInt(diaSeleccionado),
+                    mes: mesVista,
+                    año: añoVista
                 };
 
-                // Insertamos al principio de la lista visual
                 setTrades([nuevoTrade, ...trades]);
                 setActivo('');
                 setResultado('');
@@ -113,29 +152,30 @@
                 setTrades(trades.filter(t => t.id !== id));
             };
 
-            // Cálculos Generales
-            const totalPnl = trades.reduce((acc, t) => acc + t.resultado, 0);
-            const winRate = trades.length > 0 ? Math.round((trades.filter(t => t.estado === 'WIN').length / trades.length) * 100) : 0;
+            // Cálculos del Período en Vista
+            const totalPnlMes = tradesDelMesActual.reduce((acc, t) => acc + t.resultado, 0);
+            const winRateMes = tradesDelMesActual.length > 0 
+                ? Math.round((tradesDelMesActual.filter(t => t.estado === 'WIN').length / tradesDelMesActual.length) * 100) 
+                : 0;
 
-            // --- Renderizado y Actualización del Gráfico ---
+            // --- Renderizado del Gráfico de Rendimiento ---
             useEffect(() => {
                 if (vista === 'metricas' && chartRef.current) {
-                    // Destruir gráfico previo para evitar duplicados
                     if (chartInstance.current) {
                         chartInstance.current.destroy();
                     }
 
-                    // Calcular la curva de patrimonio acumulada de forma cronológica (del más viejo al más nuevo)
-                    const tradesCronologicos = [...trades].sort((a, b) => a.id - b.id);
+                    // Grafica los trades del mes actual en orden cronológico ascendente
+                    const tradesCronologicos = [...tradesDelMesActual].sort((a, b) => a.id - b.id);
                     let balanceAcumulado = 0;
                     
-                    const dataPuntos = [0]; // Punto inicial cero
+                    const dataPuntos = [0];
                     const etiquetas = ["Inicio"];
 
                     tradesCronologicos.forEach((t, index) => {
                         balanceAcumulado += t.resultado;
                         dataPuntos.push(balanceAcumulado);
-                        etiquetas.push(`T${index + 1} (${t.activo})`);
+                        etiquetas.push(`Día ${t.dia} (${t.activo})`);
                     });
 
                     const ctx = chartRef.current.getContext('2d');
@@ -144,45 +184,36 @@
                         data: {
                             labels: etiquetas,
                             datasets: [{
-                                label: 'Rendimiento Neto ($)',
+                                label: 'PnL ($)',
                                 data: dataPuntos,
                                 borderColor: balanceAcumulado >= 0 ? '#0ecb81' : '#f6465d',
-                                backgroundColor: 'rgba(14, 203, 129, 0.05)',
-                                borderWidth: 3,
+                                backgroundColor: balanceAcumulado >= 0 ? 'rgba(14, 203, 129, 0.03)' : 'rgba(246, 70, 93, 0.03)',
+                                borderWidth: 2.5,
                                 pointBackgroundColor: '#f0b90b',
-                                pointRadius: 4,
-                                tension: 0.2,
+                                pointRadius: 3.5,
+                                tension: 0.15,
                                 fill: true
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false }
-                            },
+                            plugins: { legend: { display: false } },
                             scales: {
-                                x: {
-                                    grid: { color: 'rgba(255, 255, 255, 0.03)' },
-                                    ticks: { color: '#848d9a', font: { size: 9 } }
-                                },
-                                y: {
-                                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                                    ticks: { color: '#848d9a', font: { size: 10 } }
-                                }
+                                x: { grid: { color: 'rgba(255, 255, 255, 0.02)' }, ticks: { color: '#848d9a', font: { size: 8 } } },
+                                y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#848d9a', font: { size: 9 } } }
                             }
                         }
                     });
                 }
 
-                // Limpieza al desmontar o cambiar de pestaña
                 return () => {
                     if (chartInstance.current) {
                         chartInstance.current.destroy();
                         chartInstance.current = null;
                     }
                 };
-            }, [vista, trades]);
+            }, [vista, trades, mesVista, añoVista]);
 
             return (
                 <div className="min-h-screen max-w-md mx-auto bg-bgMain flex flex-col pb-24">
@@ -194,25 +225,30 @@
                             <h1 className="text-base font-black tracking-wider uppercase">Trading Journal</h1>
                         </div>
                         <span className="text-[10px] text-gray-400 bg-bgCard font-bold px-2 py-0.5 rounded-full border border-gray-800">
-                            {vista === 'calendario' ? 'VISTA CALENDARIO' : 'ANÁLISIS GRÁFICO'}
+                            PWA STORAGE ON
                         </span>
                     </header>
 
                     <main className="p-4 flex flex-col gap-5 flex-1">
                         
-                        {/* PESTAÑA CALENDARIO */}
-                        {vista === 'calendario' && (
-                            <React.Fragment>
-                                <div className="bg-bgCard rounded-2xl border border-gray-800 p-4 shadow-xl">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h2 className="text-sm font-black text-white uppercase tracking-wide">
-                                            {nombreMeses[mesActual]} <span className="text-gray-500 font-mono">{añoActual}</span>
-                                        </h2>
-                                        <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded ${totalPnl >= 0 ? 'text-cryptoGreen bg-cryptoGreen/10' : 'text-cryptoRed bg-cryptoRed/10'}`}>
-                                            {totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString()}
-                                        </span>
-                                    </div>
+                        {/* CONTROLES DE MES / NAVEGACIÓN */}
+                        <div className="bg-bgCard rounded-2xl border border-gray-800 p-4 shadow-xl">
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => cambiarMes('prev')} className="w-8 h-8 rounded-lg bg-bgInput flex items-center justify-center font-bold text-gray-400 active:bg-gray-700">&lt;</button>
+                                    <h2 className="text-sm font-black text-white uppercase tracking-wide min-w-[110px] text-center">
+                                        {nombreMeses[mesVista]} <span className="text-gray-500 font-mono text-xs">{añoVista}</span>
+                                    </h2>
+                                    <button onClick={() => cambiarMes('next')} className="w-8 h-8 rounded-lg bg-bgInput flex items-center justify-center font-bold text-gray-400 active:bg-gray-700">&gt;</button>
+                                </div>
+                                <span className={`text-xs font-bold font-mono px-2 py-1 rounded ${totalPnlMes >= 0 ? 'text-cryptoGreen bg-cryptoGreen/10' : 'text-cryptoRed bg-cryptoRed/10'}`}>
+                                    {totalPnlMes >= 0 ? '+' : ''}${totalPnlMes.toLocaleString()}
+                                </span>
+                            </div>
 
+                            {/* CONDICIONAL: CALENDARIO */}
+                            {vista === 'calendario' && (
+                                <React.Fragment>
                                     <div className="grid grid-cols-7 gap-1 text-center mb-1">
                                         {diasSemana.map(d => (
                                             <span key={d} className="text-[9px] text-gray-500 font-bold tracking-tighter">{d}</span>
@@ -239,7 +275,7 @@
                                                 <div 
                                                     key={nroDia} 
                                                     onClick={() => setDiaSeleccionado(nroDia)}
-                                                    className={`aspect-square rounded-lg flex flex-col justify-between p-1 text-[10px] transition-all cursor-pointer relative ${bgCelda} ${diaSeleccionado === nroDia ? 'ring-2 ring-gold scale-105 z-10' : ''}`}
+                                                    className={`aspect-square rounded-lg flex flex-col justify-between p-1 text-[10px] transition-all cursor-pointer ${bgCelda} ${diaSeleccionado === nroDia ? 'ring-2 ring-gold scale-105 z-10' : ''}`}
                                                 >
                                                     <span className="font-mono">{String(nroDia).padStart(2, '0')}</span>
                                                     {dataDia && (
@@ -251,103 +287,101 @@
                                             );
                                         })}
                                     </div>
+                                </React.Fragment>
+                            )}
+
+                            {/* CONDICIONAL: GRÁFICO (MÉTRICAS) */}
+                            {vista === 'metricas' && (
+                                <div className="w-full relative min-h-[200px] mt-2">
+                                    {tradesDelMesActual.length === 0 ? (
+                                        <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-500 italic">No hay trades este mes para graficar</div>
+                                    ) : (
+                                        <canvas ref={chartRef}></canvas>
+                                    )}
                                 </div>
+                            )}
+                        </div>
 
-                                {/* REGISTRO DE TRADES */}
-                                <div className="bg-bgCard p-4 rounded-2xl border border-gray-800 shadow-md">
-                                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Registrar en Día {diaSeleccionado}</h3>
-                                    <form onSubmit={agregarTrade} className="flex flex-col gap-3">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <input 
-                                                type="text" 
-                                                placeholder="Activo (BTC, SOL)" 
-                                                value={activo}
-                                                onChange={(e) => setActivo(e.target.value)}
-                                                className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-bold border border-transparent focus:border-gray-700 outline-none placeholder-gray-600"
-                                            />
-                                            <input 
-                                                type="number" 
-                                                placeholder="PnL Neto USD" 
-                                                value={resultado}
-                                                onChange={(e) => setResultado(e.target.value)}
-                                                className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-mono font-bold border border-transparent focus:border-gray-700 outline-none placeholder-gray-600"
-                                            />
-                                        </div>
+                        {/* FORMULARIO DE REGISTRO (Solo visible en pestaña calendario) */}
+                        {vista === 'calendario' && (
+                            <div className="bg-bgCard p-4 rounded-2xl border border-gray-800 shadow-md">
+                                <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Registrar en Día {diaSeleccionado} de {nombreMeses[mesVista]}</h3>
+                                <form onSubmit={agregarTrade} className="flex flex-col gap-3">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <input 
+                                            type="text" 
+                                            placeholder="Activo (BTC, SOL)" 
+                                            value={activo}
+                                            onChange={(e) => setActivo(e.target.value)}
+                                            className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-bold border border-transparent focus:border-gray-700 outline-none"
+                                        />
+                                        <input 
+                                            type="number" 
+                                            placeholder="PnL Neto USD" 
+                                            value={resultado}
+                                            onChange={(e) => setResultado(e.target.value)}
+                                            className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-mono font-bold border border-transparent focus:border-gray-700 outline-none"
+                                        />
+                                    </div>
 
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <button 
-                                                type="button"
-                                                onClick={() => setEstado('WIN')}
-                                                className={`py-2 rounded-xl text-xs font-black transition-all ${estado === 'WIN' ? 'bg-cryptoGreen text-black' : 'bg-bgInput text-gray-500'}`}
-                                            >
-                                                PROFIT (WIN)
-                                            </button>
-                                            <button 
-                                                type="button"
-                                                onClick={() => setEstado('LOSS')}
-                                                className={`py-2 rounded-xl text-xs font-black transition-all ${estado === 'LOSS' ? 'bg-cryptoRed text-white' : 'bg-bgInput text-gray-500'}`}
-                                            >
-                                                LOSS (PÉRDIDA)
-                                            </button>
-                                        </div>
-
-                                        <button type="submit" className="w-full bg-gold text-black font-black py-3 rounded-xl text-xs uppercase tracking-widest mt-1">
-                                            Añadir al Calendario
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setEstado('WIN')}
+                                            className={`py-2 rounded-xl text-xs font-black transition-all ${estado === 'WIN' ? 'bg-cryptoGreen text-black' : 'bg-bgInput text-gray-500'}`}
+                                        >
+                                            PROFIT (WIN)
                                         </button>
-                                    </form>
-                                </div>
-                            </React.Fragment>
+                                        <button 
+                                            type="button"
+                                            onClick={() => setEstado('LOSS')}
+                                            className={`py-2 rounded-xl text-xs font-black transition-all ${estado === 'LOSS' ? 'bg-cryptoRed text-white' : 'bg-bgInput text-gray-500'}`}
+                                        >
+                                            LOSS (PÉRDIDA)
+                                        </button>
+                                    </div>
+
+                                    <button type="submit" className="w-full bg-gold text-black font-black py-3 rounded-xl text-xs uppercase tracking-widest mt-1">
+                                        Añadir al Calendario
+                                    </button>
+                                </form>
+                            </div>
                         )}
 
-                        {/* PESTAÑA MÉTRICAS (GRÁFICO) */}
+                        {/* MÉTRICAS SECUNDARIAS (Visible en pestañas de analíticas) */}
                         {vista === 'metricas' && (
-                            <div className="bg-bgCard rounded-2xl border border-gray-800 p-4 shadow-xl flex flex-col gap-4 flex-1 min-h-[300px]">
-                                <div>
-                                    <h2 className="text-sm font-black text-white uppercase tracking-wide">Curva de Rendimiento</h2>
-                                    <p className="text-xs text-gray-500">Evolución del balance neto acumulado de tus trades</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-bgCard p-3 rounded-xl border border-gray-800 text-center">
+                                    <span className="text-[10px] text-gray-500 font-bold block uppercase">Win Rate del Mes</span>
+                                    <span className="text-base font-black text-gold mt-1 block">🎯 {winRateMes}%</span>
                                 </div>
-                                
-                                <div className="flex-1 w-full relative min-h-[220px]">
-                                    <canvas ref={chartRef}></canvas>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2 mt-2">
-                                    <div className="bg-bgMain p-3 rounded-xl border border-gray-800/60 text-center">
-                                        <span className="text-[10px] text-gray-500 font-bold block uppercase">Monto Total PnL</span>
-                                        <span className={`text-base font-black mt-1 block ${totalPnl >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
-                                            ${totalPnl.toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <div className="bg-bgMain p-3 rounded-xl border border-gray-800/60 text-center">
-                                        <span className="text-[10px] text-gray-500 font-bold block uppercase">Efectividad General</span>
-                                        <span className="text-base font-black text-gold mt-1 block">🎯 {winRate}%</span>
-                                    </div>
+                                <div className="bg-bgCard p-3 rounded-xl border border-gray-800 text-center">
+                                    <span className="text-[10px] text-gray-500 font-bold block uppercase">Operaciones</span>
+                                    <span className="text-base font-black text-white mt-1 block">⚡ {tradesDelMesActual.length} trades</span>
                                 </div>
                             </div>
                         )}
 
-                        {/* HISTORIAL GENERAL (Visible en ambas vistas para poder borrar cuando quieras) */}
-                        <div className="mt-2">
-                            <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-1">Trades de este Mes</h3>
-                            <div className="flex flex-col gap-2 max-h-[250px] overflow-y-auto pr-1">
-                                {trades.length === 0 ? (
-                                    <p className="text-xs text-gray-600 text-center py-4 font-semibold italic">No hay operaciones guardadas.</p>
+                        {/* LISTA DEL HISTORIAL DEL MES EN CURSO */}
+                        <div>
+                            <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-1">Trades de {nombreMeses[mesVista]}</h3>
+                            <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-1">
+                                {tradesDelMesActual.length === 0 ? (
+                                    <p className="text-xs text-gray-600 text-center py-4 font-semibold italic">No hay operaciones en este mes.</p>
                                 ) : (
-                                    trades.map((t) => (
+                                    tradesDelMesActual.map((t) => (
                                         <div key={t.id} className="bg-bgCard pl-4 pr-2 py-2.5 rounded-xl border border-gray-800/80 flex justify-between items-center gap-2">
                                             <div className="flex items-center gap-3 min-w-0">
-                                                <span className="text-[10px] font-mono font-bold text-gray-500 shrink-0">DíA {String(t.dia).padStart(2, '0')}</span>
+                                                <span className="text-[10px] font-mono font-bold text-gray-500 shrink-0">DÍA {String(t.dia).padStart(2, '0')}</span>
                                                 <span className="font-black text-sm text-white truncate">{t.activo}</span>
                                             </div>
                                             <div className="flex items-center gap-3 shrink-0">
                                                 <span className={`font-mono font-bold text-xs ${t.resultado >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
                                                     {t.resultado >= 0 ? '+' : ''}${t.resultado.toLocaleString()}
                                                 </span>
-                                                {/* Botón Eliminar */}
                                                 <button 
                                                     onClick={() => eliminarTrade(t.id)}
                                                     className="w-6 h-6 rounded-md bg-gray-800 hover:bg-cryptoRed/20 text-gray-400 hover:text-cryptoRed flex items-center justify-center text-sm font-bold transition-all"
-                                                    title="Eliminar trade"
                                                 >
                                                     &times;
                                                 </button>
@@ -360,7 +394,7 @@
 
                     </main>
 
-                    {/* Menú de Navegación Inferior Funcional */}
+                    {/* Nav Bar */}
                     <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-bgCard border-t border-gray-800 px-12 py-4 flex justify-between items-center z-50">
                         <button 
                             onClick={() => setVista('calendario')}
@@ -389,7 +423,5 @@
 </body>
 </html>
 
-   
-               
-                                
-               
+           
+                                    
