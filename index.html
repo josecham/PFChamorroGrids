@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Trading Journal Pro V4</title>
     
+    <!-- PWA Setup Mobile -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0e11">
 
+    <!-- Tailwind CSS por CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js para la curva de patrimonio -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
@@ -41,6 +45,7 @@
 <body class="text-gray-200 font-sans antialiased">
     <div id="root"></div>
 
+    <!-- Scripts de React, ReactDOM y Babel Core -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -51,17 +56,25 @@
         function App() {
             const hoy = new Date();
             
+            // Estado de navegación temporal (Mes y Año seleccionados en vista)
             const [mesVista, setMesVista] = useState(hoy.getMonth());
             const [añoVista, setAñoVista] = useState(hoy.getFullYear());
-            const [vista, setVista] = useState('calendario');
+            const [vista, setVista] = useState('calendario'); // 'calendario' o 'metricas'
 
-            // Cargar trades desde localStorage
+            // --- MONETIZACIÓN: Estado de acceso Premium ---
+            const [isPremium, setIsPremium] = useState(() => {
+                return localStorage.getItem('trading_journal_premium') === 'true';
+            });
+            const [inputCodigo, setInputCodigo] = useState('');
+            const [errorCodigo, setErrorCodigo] = useState(false);
+
+            // Cargar los datos desde el almacenamiento interno del celular
             const [trades, setTrades] = useState(() => {
                 const guardados = localStorage.getItem('trading_journal_trades');
                 if (guardados) {
                     return JSON.parse(guardados);
                 } else {
-                    // Datos semilla de ejemplo distribuidos en diferentes meses/fechas simuladas
+                    // Datos iniciales de demostración
                     return [
                         { id: 1711929600000, activo: 'BTC', resultado: 550.00, estado: 'WIN', dia: 12, mes: 2, año: 2026 },
                         { id: 1714521600000, activo: 'ETH', resultado: -320.00, estado: 'LOSS', dia: 5, mes: 3, año: 2026 },
@@ -79,6 +92,7 @@
             const chartRef = useRef(null);
             const chartInstance = useRef(null);
 
+            // Guardar automáticamente en LocalStorage al añadir o quitar trades
             useEffect(() => {
                 localStorage.setItem('trading_journal_trades', JSON.stringify(trades));
             }, [trades]);
@@ -89,7 +103,7 @@
             const primerDiaIndex = new Date(añoVista, mesVista, 1).getDay();
             const totalDiasMes = new Date(añoVista, mesVista + 1, 0).getDate();
 
-            // Filtrados de información
+            // Filtrados dinámicos por mes seleccionado
             const tradesDelMesActual = trades.filter(t => t.mes === mesVista && t.año === añoVista);
             
             const obtenerDataDia = (nroDia) => {
@@ -139,9 +153,24 @@
                 setTrades(trades.filter(t => t.id !== id));
             };
 
-            // --- CÁLCULOS GLOBALES Y MENSUALES ---
+            // Lógica para verificar el código Premium
+            const verificarCodigo = (e) => {
+                e.preventDefault();
+                // AQUÍ DEFINÍS TU CÓDIGO DE ACCESO (Podés cambiarlo por el que quieras)
+                const codigoValido = "TRADERPRO2026"; 
+                
+                if (inputCodigo.trim() === codigoValido) {
+                    setIsPremium(true);
+                    setErrorCodigo(false);
+                    localStorage.setItem('trading_journal_premium', 'true');
+                } else {
+                    setErrorCodigo(true);
+                }
+            };
+
+            // Métricas del mes y métricas históricas
             const totalPnlMes = tradesDelMesActual.reduce((acc, t) => acc + t.resultado, 0);
-            const totalPnlAcumulado = trades.reduce((acc, t) => acc + t.resultado, 0); // Todo el historial
+            const totalPnlAcumulado = trades.reduce((acc, t) => acc + t.resultado, 0);
             
             const winRateMes = tradesDelMesActual.length > 0 
                 ? Math.round((tradesDelMesActual.filter(t => t.estado === 'WIN').length / tradesDelMesActual.length) * 100) 
@@ -151,14 +180,13 @@
                 ? Math.round((trades.filter(t => t.estado === 'WIN').length / trades.length) * 100)
                 : 0;
 
-            // --- Renderizado del Gráfico Histórico ---
+            // Instanciación y renderizado de la curva de patrimonio (Solo si es premium)
             useEffect(() => {
-                if (vista === 'metricas' && chartRef.current) {
+                if (vista === 'metricas' && isPremium && chartRef.current) {
                     if (chartInstance.current) {
                         chartInstance.current.destroy();
                     }
 
-                    // Grafica TODOS los trades históricos en orden de ejecución real
                     const tradesCronologicos = [...trades].sort((a, b) => a.id - b.id);
                     let balanceAcumulado = 0;
                     
@@ -180,7 +208,7 @@
                                 label: 'Equity Curve ($)',
                                 data: dataPuntos,
                                 borderColor: balanceAcumulado >= 0 ? '#0ecb81' : '#f6465d',
-                                backgroundColor: balanceAcumulado >= 0 ? 'rgba(14, 203, 129, 0.02)' : 'rgba(246, 70, 93, 0.02)',
+                                backgroundColor: balanceAcumulado >= 0 ? 'rgba(14, 203, 129, 0.01)' : 'rgba(246, 70, 93, 0.01)',
                                 borderWidth: 2.5,
                                 pointBackgroundColor: '#f0b90b',
                                 pointRadius: 3,
@@ -193,7 +221,7 @@
                             maintainAspectRatio: false,
                             plugins: { legend: { display: false } },
                             scales: {
-                                x: { grid: { color: 'rgba(255, 255, 255, 0.01)' }, ticks: { color: '#848d9a', font: { size: 8 }, maxRotation: 45 } },
+                                x: { grid: { color: 'rgba(255, 255, 255, 0.01)' }, ticks: { color: '#848d9a', font: { size: 8 } } },
                                 y: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#848d9a', font: { size: 9 } } }
                             }
                         }
@@ -206,26 +234,26 @@
                         chartInstance.current = null;
                     }
                 };
-            }, [vista, trades]);
+            }, [vista, trades, isPremium]);
 
             return (
                 <div className="min-h-screen max-w-md mx-auto bg-bgMain flex flex-col pb-24">
                     
-                    {/* Header */}
+                    {/* App Header */}
                     <header className="bg-bgMain px-4 py-4 border-b border-gray-800 flex justify-between items-center sticky top-0 z-50">
                         <div className="flex items-center gap-2">
                             <div className="w-2.5 h-2.5 bg-cryptoGreen rounded-full"></div>
                             <h1 className="text-base font-black tracking-wider uppercase">Trading Journal</h1>
                         </div>
                         <span className="text-[10px] text-gray-400 bg-bgCard font-bold px-2 py-0.5 rounded-full border border-gray-800">
-                            HISTORIC TRACKING
+                            {isPremium ? 'PRO UNLOCKED' : 'STANDARD VERSION'}
                         </span>
                     </header>
 
                     <main className="p-4 flex flex-col gap-5 flex-1">
                         
-                        {/* SECCIÓN NAVEGACIÓN DE MESES (Solo se muestra si estás en el Calendario) */}
-                        {vista === 'calendario' && (
+                        {/* Selector de Navegación de Meses (Solo en calendario o si ya es Premium) */}
+                        {(vista === 'calendario' || isPremium) && (
                             <div className="bg-bgCard rounded-2xl border border-gray-800 p-4 shadow-xl">
                                 <div className="flex justify-between items-center mb-4">
                                     <div className="flex items-center gap-2">
@@ -240,84 +268,118 @@
                                     </span>
                                 </div>
 
-                                <div className="grid grid-cols-7 gap-1 text-center mb-1">
-                                    {diasSemana.map(d => (
-                                        <span key={d} className="text-[9px] text-gray-500 font-bold tracking-tighter">{d}</span>
-                                    ))}
-                                </div>
+                                {/* VISTA CALENDARIO */}
+                                {vista === 'calendario' && (
+                                    <React.Fragment>
+                                        <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                                            {diasSemana.map(d => (
+                                                <span key={d} className="text-[9px] text-gray-500 font-bold tracking-tighter">{d}</span>
+                                            ))}
+                                        </div>
 
-                                <div className="grid grid-cols-7 gap-1.5">
-                                    {Array(primerDiaIndex).fill(null).map((_, i) => (
-                                        <div key={`empty-${i}`} className="aspect-square bg-transparent"></div>
-                                    ))}
+                                        <div className="grid grid-cols-7 gap-1.5">
+                                            {Array(primerDiaIndex).fill(null).map((_, i) => (
+                                                <div key={`empty-${i}`} className="aspect-square bg-transparent"></div>
+                                            ))}
 
-                                    {Array(totalDiasMes).fill(null).map((_, index) => {
-                                        const nroDia = index + 1;
-                                        const dataDia = obtenerDataDia(nroDia);
-                                        
-                                        let bgCelda = "bg-bgInput/40 text-gray-400 border border-transparent";
-                                        if (dataDia) {
-                                            bgCelda = dataDia.pnl >= 0 ? "bg-cryptoGreen text-black font-bold" : "bg-cryptoRed text-white font-bold";
-                                        }
+                                            {Array(totalDiasMes).fill(null).map((_, index) => {
+                                                const nroDia = index + 1;
+                                                const dataDia = obtenerDataDia(nroDia);
+                                                
+                                                let bgCelda = "bg-bgInput/40 text-gray-400 border border-transparent";
+                                                if (dataDia) {
+                                                    bgCelda = dataDia.pnl >= 0 ? "bg-cryptoGreen text-black font-bold" : "bg-cryptoRed text-white font-bold";
+                                                }
 
-                                        return (
-                                            <div 
-                                                key={nroDia} 
-                                                onClick={() => setDiaSeleccionado(nroDia)}
-                                                className={`aspect-square rounded-lg flex flex-col justify-between p-1 text-[10px] transition-all cursor-pointer ${bgCelda} ${diaSeleccionado === nroDia ? 'ring-2 ring-gold scale-105 z-10' : ''}`}
-                                            >
-                                                <span className="font-mono">{String(nroDia).padStart(2, '0')}</span>
-                                                {dataDia && (
-                                                    <span className="text-[7px] tracking-tighter truncate font-mono leading-none text-center block w-full">
-                                                        {dataDia.pnl >= 0 ? '+' : ''}{Math.round(dataDia.pnl)}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                                return (
+                                                    <div 
+                                                        key={nroDia} 
+                                                        onClick={() => setDiaSeleccionado(nroDia)}
+                                                        className={`aspect-square rounded-lg flex flex-col justify-between p-1 text-[10px] transition-all cursor-pointer ${bgCelda} ${diaSeleccionado === nroDia ? 'ring-2 ring-gold scale-105 z-10' : ''}`}
+                                                    >
+                                                        <span className="font-mono">{String(nroDia).padStart(2, '0')}</span>
+                                                        {dataDia && (
+                                                            <span className="text-[7px] tracking-tighter truncate font-mono leading-none text-center block w-full">
+                                                                {dataDia.pnl >= 0 ? '+' : ''}{Math.round(dataDia.pnl)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </React.Fragment>
+                                )}
+
+                                {/* VISTA DE MÉTRICAS AVANZADAS (GRÁFICO - SÓLO PREMIUM) */}
+                                {(vista === 'metricas' && isPremium) && (
+                                    <div className="w-full relative h-[180px]">
+                                        {trades.length === 0 ? (
+                                            <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-500 italic">No hay registros globales para computar</div>
+                                        ) : (
+                                            <canvas ref={chartRef}></canvas>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
 
-                        {/* VISTA DE MÉTRICAS AVANZADAS CON ACUMULADO */}
-                        {vista === 'metricas' && (
-                            <div className="bg-bgCard rounded-2xl border border-gray-800 p-4 shadow-xl flex flex-col gap-4">
+                        {/* PANTALLA DE BLOQUEO DE MONETIZACIÓN (SÓLO SI NO ES PREMIUM) */}
+                        {(vista === 'metricas' && !isPremium) && (
+                            <div className="bg-bgCard rounded-2xl border border-gray-800 p-6 shadow-xl flex flex-col items-center text-center gap-5 my-auto">
+                                <div className="w-14 h-14 bg-gold/10 text-gold rounded-full flex items-center justify-center border border-gold/30 text-2xl">
+                                    🔒
+                                </div>
                                 <div>
-                                    <h2 className="text-sm font-black text-white uppercase tracking-wide">Curva de Crecimiento Global</h2>
-                                    <p className="text-xs text-gray-500">Rendimiento histórico de todos tus meses indexados</p>
+                                    <h2 className="text-base font-black text-white uppercase tracking-wide">Métricas Avanzadas Pro</h2>
+                                    <p className="text-xs text-gray-400 mt-1 px-4">Desbloqueá el análisis profundo de tu operativa y lleva un control profesional.</p>
                                 </div>
-                                
-                                <div className="w-full relative h-[180px]">
-                                    {trades.length === 0 ? (
-                                        <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-500 italic">No hay registros globales para computar</div>
-                                    ) : (
-                                        <canvas ref={chartRef}></canvas>
+
+                                <ul className="text-left w-full bg-bgMain/60 p-4 rounded-xl border border-gray-800 text-xs flex flex-col gap-2 text-gray-300 font-medium">
+                                    <li className="flex items-center gap-2">✨ Curva de crecimiento patrimonial (Equity Curve).</li>
+                                    <li className="flex items-center gap-2">📊 Historial acumulado total de todos los meses.</li>
+                                    <li className="flex items-center gap-2">🎯 Win Rate global histórico e indexado.</li>
+                                </ul>
+
+                                <form onSubmit={verificarCodigo} className="w-full flex flex-col gap-2.5 mt-2">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Ingresá tu código de acceso Pro" 
+                                        value={inputCodigo}
+                                        onChange={(e) => setInputCodigo(e.target.value)}
+                                        className={`bg-bgInput text-white px-4 py-3 rounded-xl text-xs font-bold border text-center uppercase tracking-widest outline-none transition-all ${errorCodigo ? 'border-cryptoRed focus:border-cryptoRed' : 'border-transparent focus:border-gold'}`}
+                                    />
+                                    {errorCodigo && (
+                                        <span className="text-[10px] text-cryptoRed font-bold">Código incorrecto. Verificá y volvé a intentar.</span>
                                     )}
+                                    <button type="submit" className="w-full bg-gold text-black font-black py-3 rounded-xl text-xs uppercase tracking-widest mt-1 shadow-md active:scale-[0.98] transition-all">
+                                        Validar Licencia Pro
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+
+                        {/* MÓDULO COMPARATIVO DE MÉTRICAS GLOBAL VS MES (SÓLO PREMIUM) */}
+                        {(vista === 'metricas' && isPremium) && (
+                            <div className="grid grid-cols-2 gap-2.5">
+                                <div className="bg-bgCard p-3 rounded-xl border border-gray-800">
+                                    <span className="text-[9px] text-gray-500 font-bold block uppercase tracking-wider">PnL {nombreMeses[mesVista]}</span>
+                                    <span className={`text-sm font-black mt-0.5 block ${totalPnlMes >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
+                                        {totalPnlMes >= 0 ? '+' : ''}${totalPnlMes.toLocaleString()}
+                                    </span>
+                                    <span className="text-[9px] text-gray-400 font-mono block mt-0.5">🎯 WR: {winRateMes}%</span>
                                 </div>
 
-                                {/* Bloque de Métricas Comparativas: Mes vs Histórico */}
-                                <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-gray-800/50">
-                                    <div className="bg-bgMain p-3 rounded-xl border border-gray-800/60">
-                                        <span className="text-[9px] text-gray-500 font-bold block uppercase tracking-wider">P&L Neto ({nombreMeses[mesVista]})</span>
-                                        <span className={`text-sm font-black mt-0.5 block ${totalPnlMes >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
-                                            {totalPnlMes >= 0 ? '+' : ''}${totalPnlMes.toLocaleString()}
-                                        </span>
-                                        <span className="text-[9px] text-gray-400 font-mono block mt-0.5">🎯 WR: {winRateMes}%</span>
-                                    </div>
-
-                                    <div className="bg-bgMain p-3 rounded-xl border border-gold/20 relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 w-8 h-8 bg-gold/5 rounded-full blur-md"></div>
-                                        <span className="text-[9px] text-gold font-bold block uppercase tracking-wider">Total Acumulado</span>
-                                        <span className={`text-sm font-black mt-0.5 block ${totalPnlAcumulado >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
-                                            {totalPnlAcumulado >= 0 ? '+' : ''}${totalPnlAcumulado.toLocaleString()}
-                                        </span>
-                                        <span className="text-[9px] text-gray-400 font-mono block mt-0.5">🌍 Global WR: {winRateGlobal}%</span>
-                                    </div>
+                                <div className="bg-bgCard p-3 rounded-xl border border-gold/20 relative overflow-hidden">
+                                    <span className="text-[9px] text-gold font-bold block uppercase tracking-wider">Total Acumulado</span>
+                                    <span className={`text-sm font-black mt-0.5 block ${totalPnlAcumulado >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
+                                        {totalPnlAcumulado >= 0 ? '+' : ''}${totalPnlAcumulado.toLocaleString()}
+                                    </span>
+                                    <span className="text-[9px] text-gray-400 font-mono block mt-0.5">🌍 Global WR: {winRateGlobal}%</span>
                                 </div>
                             </div>
                         )}
 
-                        {/* FORMULARIO DE REGISTRO (Solo en pestaña calendario) */}
+                        {/* FORMULARIO DE REGISTRO DE TRADES */}
                         {vista === 'calendario' && (
                             <div className="bg-bgCard p-4 rounded-2xl border border-gray-800 shadow-md">
                                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Registrar en Día {diaSeleccionado} de {nombreMeses[mesVista]}</h3>
@@ -363,7 +425,7 @@
                             </div>
                         )}
 
-                        {/* LISTA DE TRADES DEL PERÍODO ACTUAL */}
+                        {/* LISTADO HISTÓRICO DEL MES SELECCIONADO */}
                         <div>
                             <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-1">Trades de {nombreMeses[mesVista]}</h3>
                             <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-1">
@@ -395,7 +457,7 @@
 
                     </main>
 
-                    {/* Nav Bar */}
+                    {/* Menú de Navegación Inferior Estilo App Nativa */}
                     <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-bgCard border-t border-gray-800 px-12 py-4 flex justify-between items-center z-50">
                         <button 
                             onClick={() => setVista('calendario')}
@@ -421,10 +483,10 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+
+    <!-- SCRIPT DE SEGUIMIENTO OFICIAL DE VERCEL ANALYTICS PARA SITIOS ESTÁTICOS -->
     <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
-
-
          
                    
