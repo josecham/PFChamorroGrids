@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trading Journal Pro</title>
+    <title>Trading Journal & Calendar</title>
     
-    <!-- Configuración PWA Mobile -->
+    <!-- PWA Setup -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0e11">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2821/2821815.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -35,14 +34,12 @@
             -webkit-tap-highlight-color: transparent;
             overflow-y: auto;
         }
-        /* Ocultar barra de scroll pero mantener funcionalidad */
         ::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="text-gray-200 font-sans antialiased">
     <div id="root"></div>
 
-    <!-- Scripts de React y Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -51,36 +48,50 @@
         const { useState, useEffect } = React;
 
         function App() {
-            // Estado inicial con algunos datos de ejemplo simulados
+            const hoy = new Date();
+            const añoActual = hoy.getFullYear();
+            const mesActual = hoy.getMonth(); // 0 = Enero, 4 = Mayo, etc.
+
+            // Trades de ejemplo precargados para ver el calendario en acción
             const [trades, setTrades] = useState([
-                { id: 1, activo: 'BTC/USDT', tipo: 'LONG', resultado: 150.50, estado: 'WIN', fecha: '30/05' },
-                { id: 2, activo: 'ETH/USDT', tipo: 'SHORT', resultado: -45.00, estado: 'LOSS', fecha: '30/05' },
-                { id: 3, activo: 'SOL/USDT', tipo: 'LONG', resultado: 82.10, estado: 'WIN', fecha: '29/05' }
+                { id: 1, activo: 'BTC', resultado: 601.00, estado: 'WIN', dia: 6 },
+                { id: 2, activo: 'ETH', resultado: 2278.00, estado: 'WIN', dia: 18 },
+                { id: 3, activo: 'SOL', resultado: -1802.00, estado: 'LOSS', dia: 20 },
+                { id: 4, activo: 'ADA', resultado: -553.00, estado: 'LOSS', dia: 26 },
+                { id: 5, activo: 'DOT', resultado: -6880.00, estado: 'LOSS', dia: 27 }
             ]);
 
-            const [capitalInicial, setCapitalInicial] = useState(1000);
             const [activo, setActivo] = useState('');
-            const [tipo, setTipo] = useState('LONG');
             const [resultado, setResultado] = useState('');
             const [estado, setEstado] = useState('WIN');
+            const [diaSeleccionado, setDiaSeleccionado] = useState(hoy.getDate());
 
-            // Cálculos del Dashboard automático
-            const totalPnl = trades.reduce((acc, trade) => acc + trade.resultado, 0);
-            const capitalActual = capitalInicial + totalPnl;
-            const totalWins = trades.filter(t => t.estado === 'WIN').length;
-            const winRate = trades.length > 0 ? Math.round((totalWins / trades.length) * 100) : 0;
+            // --- Lógica del Calendario Matriz ---
+            const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            const diasSemana = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
+            
+            const primerDiaIndex = new Date(añoActual, mesActual, 1).getDay();
+            const totalDiasMes = new Date(añoActual, mesActual + 1, 0).getDate();
+
+            // Mapea las ganancias/pérdidas totales acumuladas por cada día del mes
+            const obtenerDataDia = (nroDia) => {
+                const tradesDelDia = trades.filter(t => t.dia === nroDia);
+                if (tradesDelDia.length === 0) return null;
+                const pnlTotal = tradesDelDia.reduce((acc, t) => acc + t.resultado, 0);
+                return { pnl: pnlTotal, count: tradesDelDia.length };
+            };
 
             const agregarTrade = (e) => {
                 e.preventDefault();
                 if (!activo || !resultado) return;
 
+                const monto = parseFloat(resultado);
                 const nuevoTrade = {
                     id: Date.now(),
                     activo: activo.toUpperCase(),
-                    tipo,
-                    resultado: estado === 'WIN' ? Math.abs(parseFloat(resultado)) : -Math.abs(parseFloat(resultado)),
+                    resultado: estado === 'WIN' ? Math.abs(monto) : -Math.abs(monto),
                     estado,
-                    fecha: new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })
+                    dia: parseInt(diaSeleccionado)
                 };
 
                 setTrades([nuevoTrade, ...trades]);
@@ -88,163 +99,164 @@
                 setResultado('');
             };
 
+            // Cálculos Generales del Dashboard
+            const totalPnl = trades.reduce((acc, t) => acc + t.resultado, 0);
+            const winRate = trades.length > 0 ? Math.round((trades.filter(t => t.estado === 'WIN').length / trades.length) * 100) : 0;
+
             return (
-                <div className="min-h-screen max-w-md mx-auto bg-bgMain flex flex-col justify-between pb-24">
+                <div className="min-h-screen max-w-md mx-auto bg-bgMain flex flex-col pb-24">
                     
                     {/* Header */}
-                    <header className="sticky top-0 z-50 bg-bgMain/90 backdrop-blur-md px-4 py-4 border-b border-gray-800 flex justify-between items-center">
+                    <header className="bg-bgMain px-4 py-4 border-b border-gray-800 flex justify-between items-center sticky top-0 z-50">
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 bg-gold rounded-full animate-pulse"></div>
-                            <h1 className="text-xl font-bold tracking-tight">TRADING JOURNAL</h1>
+                            <div className="w-2.5 h-2.5 bg-cryptoGreen rounded-full"></div>
+                            <h1 className="text-base font-black tracking-wider uppercase">Trading Journal</h1>
                         </div>
-                        <span className="text-xs text-gray-400 bg-bgCard px-2 py-1 rounded-md border border-gray-800">PRO MODE</span>
+                        <span className="text-[10px] text-gold bg-gold/10 font-bold px-2 py-0.5 rounded-full border border-gold/20">CALENDAR MODE</span>
                     </header>
 
-                    {/* Contenido Principal */}
-                    <main className="p-4 flex-1 flex flex-col gap-6">
+                    <main className="p-4 flex flex-col gap-5">
                         
-                        {/* Balance y Profit Principal */}
-                        <div className="bg-bgCard p-5 rounded-2xl border border-gray-800 shadow-xl relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-gold/5 rounded-full blur-2xl"></div>
-                            <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Account Balance</p>
-                            <h2 className="text-4xl font-black mt-1 text-white tracking-tight">
-                                ${capitalActual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </h2>
-                            
-                            <div className="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-gray-800/60">
-                                <div>
-                                    <p className="text-[11px] text-gray-400 uppercase">Total PnL</p>
-                                    <span className={`text-base font-bold flex items-center gap-1 mt-0.5 ${totalPnl >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
-                                        {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
-                                    </span>
-                                </div>
-                                <div>
-                                    <p className="text-[11px] text-gray-400 uppercase">Win Rate</p>
-                                    <span className="text-base font-bold text-gold flex items-center gap-1 mt-0.5">
-                                        🎯 {winRate}%
-                                    </span>
-                                </div>
+                        {/* CALENDARIO ESTILO ROCKETSHEETS */}
+                        <div className="bg-bgCard rounded-2xl border border-gray-800 p-4 shadow-xl">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-sm font-black text-white uppercase tracking-wide">
+                                    {nombreMeses[mesActual]} <span className="text-gray-500 font-mono">{añoActual}</span>
+                                </h2>
+                                <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded ${totalPnl >= 0 ? 'text-cryptoGreen bg-cryptoGreen/10' : 'text-cryptoRed bg-cryptoRed/10'}`}>
+                                    {totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString()}
+                                </span>
+                            </div>
+
+                            {/* Encabezado Días de la Semana */}
+                            <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                                {diasSemana.map(d => (
+                                    <span key={d} className="text-[9px] text-gray-500 font-bold tracking-tighter">{d}</span>
+                                ))}
+                            </div>
+
+                            {/* Grilla de Celdas del Mes */}
+                            <div className="grid grid-cols-7 gap-1.5">
+                                {/* Espacios vacíos antes del día 1 */}
+                                {Array(primerDiaIndex).fill(null).map((_, i) => (
+                                    <div key={`empty-${i}`} className="aspect-square bg-transparent"></div>
+                                ))}
+
+                                {/* Días reales del mes */}
+                                {Array(totalDiasMes).fill(null).map((_, index) => {
+                                    const nroDia = index + 1;
+                                    const dataDia = obtenerDataDia(nroDia);
+                                    
+                                    let bgCelda = "bg-bgInput/40 text-gray-400 border border-transparent";
+                                    if (dataDia) {
+                                        bgCelda = dataDia.pnl >= 0 
+                                            ? "bg-cryptoGreen text-black font-bold" 
+                                            : "bg-cryptoRed text-white font-bold";
+                                    }
+
+                                    return (
+                                        <div 
+                                            key={nroDia} 
+                                            onClick={() => setDiaSeleccionado(nroDia)}
+                                            className={`aspect-square rounded-lg flex flex-col justify-between p-1 text-[10px] transition-all cursor-pointer relative ${bgCelda} ${diaSeleccionado === nroDia ? 'ring-2 ring-gold scale-105 z-10' : ''}`}
+                                        >
+                                            <span className="font-mono">{String(nroDia).padStart(2, '0')}</span>
+                                            {dataDia && (
+                                                <span className="text-[7px] tracking-tighter truncate font-mono leading-none text-center block w-full">
+                                                    {dataDia.pnl >= 0 ? '+' : ''}{Math.round(dataDia.pnl)}
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
-                        {/* Mini Estadísticas Rápidas */}
+                        {/* MÉTRICAS RÁPIDAS */}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-bgCard p-3 rounded-xl border border-gray-800 text-center">
-                                <span className="text-gray-400 text-xs block">Total Trades</span>
-                                <span className="text-lg font-bold text-white block mt-0.5">{trades.length}</span>
+                                <span className="text-gray-500 text-[10px] uppercase font-bold block">Tasa de Acierto</span>
+                                <span className="text-base font-black text-white block mt-0.5">🎯 {winRate}%</span>
                             </div>
                             <div className="bg-bgCard p-3 rounded-xl border border-gray-800 text-center">
-                                <span className="text-gray-400 text-xs block">Racha Actual</span>
-                                <span className="text-lg font-bold text-cryptoGreen block mt-0.5">🔥 3 Wins</span>
+                                <span className="text-gray-500 text-[10px] uppercase font-bold block">Día Seleccionado</span>
+                                <span className="text-base font-black text-gold block mt-0.5">Día {diaSeleccionado}</span>
                             </div>
                         </div>
 
-                        {/* Formulario para añadir Operación */}
-                        <div className="bg-bgCard p-4 rounded-2xl border border-gray-800 shadow-lg">
-                            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wide mb-3">Registrar Trade</h3>
+                        {/* REGISTRO DE TRADES */}
+                        <div className="bg-bgCard p-4 rounded-2xl border border-gray-800 shadow-md">
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Registrar en Día {diaSeleccionado}</h3>
                             <form onSubmit={agregarTrade} className="flex flex-col gap-3">
                                 <div className="grid grid-cols-2 gap-2">
                                     <input 
                                         type="text" 
-                                        placeholder="Activo (ej: BTC)" 
+                                        placeholder="Activo (BTC, SOL)" 
                                         value={activo}
                                         onChange={(e) => setActivo(e.target.value)}
-                                        className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-sm border border-transparent focus:border-gray-700 outline-none placeholder-gray-500 font-semibold"
+                                        className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-bold border border-transparent focus:border-gray-700 outline-none placeholder-gray-600"
                                     />
                                     <input 
                                         type="number" 
-                                        step="any"
-                                        placeholder="Resultado USD" 
+                                        placeholder="PnL Neto USD" 
                                         value={resultado}
                                         onChange={(e) => setResultado(e.target.value)}
-                                        className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-sm border border-transparent focus:border-gray-700 outline-none placeholder-gray-500 font-mono font-semibold"
+                                        className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-mono font-bold border border-transparent focus:border-gray-700 outline-none placeholder-gray-600"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-2">
-                                    <button 
-                                        type="button"
-                                        onClick={() => setTipo(tipo === 'LONG' ? 'SHORT' : 'LONG')}
-                                        className={`py-2 rounded-xl text-xs font-bold transition-all border ${tipo === 'LONG' ? 'bg-cryptoGreen/10 border-cryptoGreen text-cryptoGreen' : 'bg-cryptoRed/10 border-cryptoRed text-cryptoRed'}`}
-                                    >
-                                        {tipo}
-                                    </button>
-                                    
+                                <div className="grid grid-cols-2 gap-2">
                                     <button 
                                         type="button"
                                         onClick={() => setEstado('WIN')}
-                                        className={`py-2 rounded-xl text-xs font-bold transition-all ${estado === 'WIN' ? 'bg-cryptoGreen text-black font-black' : 'bg-bgInput text-gray-400'}`}
+                                        className={`py-2 rounded-xl text-xs font-black transition-all ${estado === 'WIN' ? 'bg-cryptoGreen text-black' : 'bg-bgInput text-gray-500'}`}
                                     >
-                                        WIN
+                                        PROFIT (WIN)
                                     </button>
-                                    
                                     <button 
                                         type="button"
                                         onClick={() => setEstado('LOSS')}
-                                        className={`py-2 rounded-xl text-xs font-bold transition-all ${estado === 'LOSS' ? 'bg-cryptoRed text-white font-black' : 'bg-bgInput text-gray-400'}`}
+                                        className={`py-2 rounded-xl text-xs font-black transition-all ${estado === 'LOSS' ? 'bg-cryptoRed text-white' : 'bg-bgInput text-gray-500'}`}
                                     >
-                                        LOSS
+                                        LOSS (PÉRDIDA)
                                     </button>
                                 </div>
 
-                                <button 
-                                    type="submit"
-                                    className="w-full bg-gold text-black font-black py-3 rounded-xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all mt-1 shadow-md"
-                                >
-                                    Guardar Operación
+                                <button type="submit" className="w-full bg-gold text-black font-black py-3 rounded-xl text-xs uppercase tracking-widest mt-1">
+                                    Añadir al Calendario
                                 </button>
                             </form>
                         </div>
 
-                        {/* Historial de Operaciones */}
-                        <div className="flex-1">
-                            <div className="flex justify-between items-center mb-3 px-1">
-                                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wide">Historial Reciente</h3>
-                                <span className="text-[11px] text-gray-500 font-semibold">Desliza para ver más</span>
-                            </div>
-                            
-                            <div className="flex flex-col gap-2.5">
-                                {trades.map((trade) => (
-                                    <div key={trade.id} className="bg-bgCard p-3.5 rounded-xl border border-gray-800/80 flex items-center justify-between shadow-sm">
+                        {/* HISTORIAL */}
+                        <div>
+                            <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-1">Trades del Mes</h3>
+                            <div className="flex flex-col gap-2">
+                                {trades.map((t) => (
+                                    <div key={t.id} className="bg-bgCard px-4 py-3 rounded-xl border border-gray-800 flex justify-between items-center">
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-2 h-10 rounded-full ${trade.estado === 'WIN' ? 'bg-cryptoGreen' : 'bg-cryptoRed'}`}></div>
-                                            <div>
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="font-bold text-sm text-white">{trade.activo}</span>
-                                                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-black ${trade.tipo === 'LONG' ? 'bg-cryptoGreen/10 text-cryptoGreen' : 'bg-cryptoRed/10 text-cryptoRed'}`}>
-                                                        {trade.tipo}
-                                                    </span>
-                                                </div>
-                                                <span className="text-[10px] text-gray-500 font-medium">{trade.fecha} • Manual Log</span>
-                                            </div>
+                                            <span className="text-xs font-mono font-bold text-gray-500">Día {String(t.dia).padStart(2, '0')}</span>
+                                            <span className="font-black text-sm text-white">{t.activo}</span>
                                         </div>
-                                        <div className="text-right">
-                                            <span className={`font-mono font-bold text-sm block ${trade.resultado >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
-                                                {trade.resultado >= 0 ? '+' : ''}${trade.resultado.toFixed(2)}
-                                            </span>
-                                            <span className="text-[10px] text-gray-500 font-medium uppercase tracking-tighter">
-                                                {trade.estado}
-                                            </span>
-                                        </div>
+                                        <span className={`font-mono font-bold text-sm ${t.resultado >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
+                                            {t.resultado >= 0 ? '+' : ''}${t.resultado.toLocaleString()}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
                         </div>
+
                     </main>
 
-                    {/* Menú de Navegación Inferior Estilo App */}
-                    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-bgCard/95 backdrop-blur-md border-t border-gray-800 px-8 py-4 flex justify-between items-center z-50">
+                    {/* Nav Bar inferior */}
+                    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-bgCard border-t border-gray-800 px-10 py-4 flex justify-between items-center z-50">
                         <button className="flex flex-col items-center gap-1 text-gold">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M13 21V11h8v10h-8ZM3 13V3h8v10H3Zm10-2V3h8v8h-8strings;ZM3 21v-6h8v6H3Z"/></svg>
-                            <span className="text-[10px] font-bold">Dashboard</span>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                            <span className="text-[9px] font-black uppercase tracking-wider">Calendario</span>
                         </button>
-                        <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>
-                            <span className="text-[10px] font-bold">Analíticas</span>
-                        </button>
-                        <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                            <span className="text-[10px] font-bold">Ajustes</span>
+                        <button className="flex flex-col items-center gap-1 text-gray-600">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+                            <span className="text-[9px] font-black uppercase tracking-wider">Métricas</span>
                         </button>
                     </nav>
 
@@ -257,3 +269,5 @@
     </script>
 </body>
 </html>
+                
+                           
