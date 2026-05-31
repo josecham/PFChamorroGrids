@@ -2,89 +2,258 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="img/jchamorro3.png" type="image/x-icon">
-    <!-- META ETIQUETAS SEO -->
-    <meta name="description" content="Bienvenidos soy Jose Chamorro Desarrollador Web">
-    <meta name="keywords" content="freelancer, desarrollador, web, argentina, front-end, css, java, angular, bootstrap, html">
-    <title>INICIO - FRONT END DEVELOPER JOSE</title>
-    <!-- LINK AOS -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-    <!-- se empieza con grid -->
-    <div class="grid">
-        <header class="producto  bgPrincipal align-items-center ">
-            <div data-aos="flip-left"
-            data-aos-easing="ease-out-cubic"
-            data-aos-duration="3000">
-                <img src="img/jchamorro3.png" alt="logoch" class="p20 logoimg">
-            </div>
-            <nav>
-                <ul class="menu" data-aos="zoom-in" data-aos-duration="2000">
-                    <li><a href="#" class="boton-primario">INICIO</a></li>
-                    <li><a href="pages/habilidades.html" class="boton-error">HABILIDADES</a></li>
-                    <li><a href="pages/contacto.html" class="boton-error">CONTACTO</a></li>
-                    <li><a href="pages/proyecto.html" class="boton-error">PROYECTO</a></li>
-                    <li><a href="pages/blog.html" class="boton-error">BLOG</a></li>
-                    <li><a href="https://google.com" target="_blank" class="boton-error">IR A GOOGLE</a></li>
-                </ul>
-            </nav>
-        </header>
-        <!-- contenido principal -->
-        <main class="gridMainIndex">
-            <div class="imgPrincipal" data-aos="flip-left"
-            data-aos-easing="ease-out-cubic"
-            data-aos-duration="3000">
-                <img src="img/portada.jpg" alt="portada" class="img-fluid">
-            </div>
-            <div class="titulo"  data-aos="fade-right"
-            data-aos-offset="300"
-            data-aos-easing="ease-in-sine"
-            data-aos-duration="2000">
-                <h1>Bienvenidos soy Jose Chamorro Desarrollador Frontend </h1>
-            </div>
-            <div class="parrafoIzq p20">
-                <p>Hola! Soy Jose Chamorro, desarrollador Frontend React / Wordpress con sede en Argentina.</p> 
-                <p> Actualmente me encuentro interesado en aprender más sobre accesibilidad y profundizar en las animaciones CSS/JS, además desarrollo de aplicaciones y Diseño UX UI como mis próximas metas a cumplir.</p>
-                <p>Mi objetivo principal es desempeñarme como programador.</p>
-                
-            </div>
-            <div class="imgTexto align-items-center">
-                <img src="img/perfil1.jpg" alt="perfil"  class="centralimg" >
-            </div>
-        </main>
-        <!-- pie de pagina -->
-        <footer class="producto mt20 bgPrincipal">
-            <div>
-                <img src="img/jchamorro3.png" alt="logoch" class="p20" data-aos="flip-left"
-                data-aos-easing="ease-out-cubic"
-                data-aos-duration="3000" >
-            </div>
-            <div class="rrss">
-                <h4>REDES SOCIALES</h4>
-                <a href="https://www.Facebook.com" target="_blank">
-                <img src="img/icons8-facebook-rodeado-de-círculo-48.png" alt="facebook" class="scale"></a>
-                <a href="https://www.linkedin.com/in/jose-chamorro01/" target="_blank"><img src="img/icons8-linkedin-rodeado-de-círculo-48.png" alt="linkedin" class="scale"></a>
-                <a href="https://www.twitter.com" target="_blank"><img src="img/icons8-twitter-cuadrado-48.png" alt="twiter" class="scale"></a>
-                <a href="https://www.youtube.com/@nicognito9822/videos" target="_blank"><img src="img/icons8-youtube-play-48.png" alt="youtube" class="scale"></a>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trading Journal Pro</title>
+    
+    <!-- Configuración PWA Mobile -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0b0e11">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2821/2821815.png">
 
-                
-            </div>
-            <div class="contacto">
-                <h4>CONTACTO</h4>
-                <p>josechamorro402@gmail.com</p><br>
-                
-                
-            </div>
-        </footer>
-    </div>
-   <!-- SCRIPT AOS -->
-   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-   <script>
-       AOS.init();
-   </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgMain: '#0b0e11',
+                        bgCard: '#181a20',
+                        bgInput: '#2b2f36',
+                        cryptoGreen: '#0ecb81',
+                        cryptoRed: '#f6465d',
+                        gold: '#f0b90b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b0e11;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            overflow-y: auto;
+        }
+        /* Ocultar barra de scroll pero mantener funcionalidad */
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="text-gray-200 font-sans antialiased">
+    <div id="root"></div>
+
+    <!-- Scripts de React y Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            // Estado inicial con algunos datos de ejemplo simulados
+            const [trades, setTrades] = useState([
+                { id: 1, activo: 'BTC/USDT', tipo: 'LONG', resultado: 150.50, estado: 'WIN', fecha: '30/05' },
+                { id: 2, activo: 'ETH/USDT', tipo: 'SHORT', resultado: -45.00, estado: 'LOSS', fecha: '30/05' },
+                { id: 3, activo: 'SOL/USDT', tipo: 'LONG', resultado: 82.10, estado: 'WIN', fecha: '29/05' }
+            ]);
+
+            const [capitalInicial, setCapitalInicial] = useState(1000);
+            const [activo, setActivo] = useState('');
+            const [tipo, setTipo] = useState('LONG');
+            const [resultado, setResultado] = useState('');
+            const [estado, setEstado] = useState('WIN');
+
+            // Cálculos del Dashboard automático
+            const totalPnl = trades.reduce((acc, trade) => acc + trade.resultado, 0);
+            const capitalActual = capitalInicial + totalPnl;
+            const totalWins = trades.filter(t => t.estado === 'WIN').length;
+            const winRate = trades.length > 0 ? Math.round((totalWins / trades.length) * 100) : 0;
+
+            const agregarTrade = (e) => {
+                e.preventDefault();
+                if (!activo || !resultado) return;
+
+                const nuevoTrade = {
+                    id: Date.now(),
+                    activo: activo.toUpperCase(),
+                    tipo,
+                    resultado: estado === 'WIN' ? Math.abs(parseFloat(resultado)) : -Math.abs(parseFloat(resultado)),
+                    estado,
+                    fecha: new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })
+                };
+
+                setTrades([nuevoTrade, ...trades]);
+                setActivo('');
+                setResultado('');
+            };
+
+            return (
+                <div className="min-h-screen max-w-md mx-auto bg-bgMain flex flex-col justify-between pb-24">
+                    
+                    {/* Header */}
+                    <header className="sticky top-0 z-50 bg-bgMain/90 backdrop-blur-md px-4 py-4 border-b border-gray-800 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-gold rounded-full animate-pulse"></div>
+                            <h1 className="text-xl font-bold tracking-tight">TRADING JOURNAL</h1>
+                        </div>
+                        <span className="text-xs text-gray-400 bg-bgCard px-2 py-1 rounded-md border border-gray-800">PRO MODE</span>
+                    </header>
+
+                    {/* Contenido Principal */}
+                    <main className="p-4 flex-1 flex flex-col gap-6">
+                        
+                        {/* Balance y Profit Principal */}
+                        <div className="bg-bgCard p-5 rounded-2xl border border-gray-800 shadow-xl relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-gold/5 rounded-full blur-2xl"></div>
+                            <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Account Balance</p>
+                            <h2 className="text-4xl font-black mt-1 text-white tracking-tight">
+                                ${capitalActual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </h2>
+                            
+                            <div className="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-gray-800/60">
+                                <div>
+                                    <p className="text-[11px] text-gray-400 uppercase">Total PnL</p>
+                                    <span className={`text-base font-bold flex items-center gap-1 mt-0.5 ${totalPnl >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
+                                        {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <p className="text-[11px] text-gray-400 uppercase">Win Rate</p>
+                                    <span className="text-base font-bold text-gold flex items-center gap-1 mt-0.5">
+                                        🎯 {winRate}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Mini Estadísticas Rápidas */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-bgCard p-3 rounded-xl border border-gray-800 text-center">
+                                <span className="text-gray-400 text-xs block">Total Trades</span>
+                                <span className="text-lg font-bold text-white block mt-0.5">{trades.length}</span>
+                            </div>
+                            <div className="bg-bgCard p-3 rounded-xl border border-gray-800 text-center">
+                                <span className="text-gray-400 text-xs block">Racha Actual</span>
+                                <span className="text-lg font-bold text-cryptoGreen block mt-0.5">🔥 3 Wins</span>
+                            </div>
+                        </div>
+
+                        {/* Formulario para añadir Operación */}
+                        <div className="bg-bgCard p-4 rounded-2xl border border-gray-800 shadow-lg">
+                            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wide mb-3">Registrar Trade</h3>
+                            <form onSubmit={agregarTrade} className="flex flex-col gap-3">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Activo (ej: BTC)" 
+                                        value={activo}
+                                        onChange={(e) => setActivo(e.target.value)}
+                                        className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-sm border border-transparent focus:border-gray-700 outline-none placeholder-gray-500 font-semibold"
+                                    />
+                                    <input 
+                                        type="number" 
+                                        step="any"
+                                        placeholder="Resultado USD" 
+                                        value={resultado}
+                                        onChange={(e) => setResultado(e.target.value)}
+                                        className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-sm border border-transparent focus:border-gray-700 outline-none placeholder-gray-500 font-mono font-semibold"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-2">
+                                    <button 
+                                        type="button"
+                                        onClick={() => setTipo(tipo === 'LONG' ? 'SHORT' : 'LONG')}
+                                        className={`py-2 rounded-xl text-xs font-bold transition-all border ${tipo === 'LONG' ? 'bg-cryptoGreen/10 border-cryptoGreen text-cryptoGreen' : 'bg-cryptoRed/10 border-cryptoRed text-cryptoRed'}`}
+                                    >
+                                        {tipo}
+                                    </button>
+                                    
+                                    <button 
+                                        type="button"
+                                        onClick={() => setEstado('WIN')}
+                                        className={`py-2 rounded-xl text-xs font-bold transition-all ${estado === 'WIN' ? 'bg-cryptoGreen text-black font-black' : 'bg-bgInput text-gray-400'}`}
+                                    >
+                                        WIN
+                                    </button>
+                                    
+                                    <button 
+                                        type="button"
+                                        onClick={() => setEstado('LOSS')}
+                                        className={`py-2 rounded-xl text-xs font-bold transition-all ${estado === 'LOSS' ? 'bg-cryptoRed text-white font-black' : 'bg-bgInput text-gray-400'}`}
+                                    >
+                                        LOSS
+                                    </button>
+                                </div>
+
+                                <button 
+                                    type="submit"
+                                    className="w-full bg-gold text-black font-black py-3 rounded-xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all mt-1 shadow-md"
+                                >
+                                    Guardar Operación
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* Historial de Operaciones */}
+                        <div className="flex-1">
+                            <div className="flex justify-between items-center mb-3 px-1">
+                                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wide">Historial Reciente</h3>
+                                <span className="text-[11px] text-gray-500 font-semibold">Desliza para ver más</span>
+                            </div>
+                            
+                            <div className="flex flex-col gap-2.5">
+                                {trades.map((trade) => (
+                                    <div key={trade.id} className="bg-bgCard p-3.5 rounded-xl border border-gray-800/80 flex items-center justify-between shadow-sm">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-2 h-10 rounded-full ${trade.estado === 'WIN' ? 'bg-cryptoGreen' : 'bg-cryptoRed'}`}></div>
+                                            <div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="font-bold text-sm text-white">{trade.activo}</span>
+                                                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-black ${trade.tipo === 'LONG' ? 'bg-cryptoGreen/10 text-cryptoGreen' : 'bg-cryptoRed/10 text-cryptoRed'}`}>
+                                                        {trade.tipo}
+                                                    </span>
+                                                </div>
+                                                <span className="text-[10px] text-gray-500 font-medium">{trade.fecha} • Manual Log</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className={`font-mono font-bold text-sm block ${trade.resultado >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
+                                                {trade.resultado >= 0 ? '+' : ''}${trade.resultado.toFixed(2)}
+                                            </span>
+                                            <span className="text-[10px] text-gray-500 font-medium uppercase tracking-tighter">
+                                                {trade.estado}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* Menú de Navegación Inferior Estilo App */}
+                    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-bgCard/95 backdrop-blur-md border-t border-gray-800 px-8 py-4 flex justify-between items-center z-50">
+                        <button className="flex flex-col items-center gap-1 text-gold">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M13 21V11h8v10h-8ZM3 13V3h8v10H3Zm10-2V3h8v8h-8strings;ZM3 21v-6h8v6H3Z"/></svg>
+                            <span className="text-[10px] font-bold">Dashboard</span>
+                        </button>
+                        <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+                            <span className="text-[10px] font-bold">Analíticas</span>
+                        </button>
+                        <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            <span className="text-[10px] font-bold">Ajustes</span>
+                        </button>
+                    </nav>
+
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
