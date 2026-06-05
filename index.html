@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trading Journal Pro V4</title>
+    <title>Trading Journal Cloud V5</title>
     
-    <!-- PWA Setup Mobile -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0e11">
 
-    <!-- Tailwind CSS por CDN -->
+    <!-- Tailwind CSS y Chart.js -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js para la curva de patrimonio -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
@@ -33,56 +30,62 @@
         }
     </script>
     <style>
-        body {
-            background-color: #0b0e11;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            overflow-y: auto;
-        }
+        body { background-color: #0b0e11; user-select: none; -webkit-tap-highlight-color: transparent; overflow-y: auto; }
         ::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="text-gray-200 font-sans antialiased">
     <div id="root"></div>
 
-    <!-- Scripts de React, ReactDOM y Babel Core -->
+    <!-- Scripts de React y Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- LIBRERÍAS OFICIALES DE FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
+
+        // Tus credenciales reales vinculadas desde la Captura de pantalla (1907).png
+        const firebaseConfig = {
+            apiKey: "AIzaSyAts93tv702grlHPGnh6ID1QeR_3XQc",
+            authDomain: "tradingjournalpro-3507c.firebaseapp.com",
+            projectId: "tradingjournalpro-3507c",
+            storageBucket: "tradingjournalpro-3507c.firebasestorage.app",
+            messagingSenderId: "318505631445",
+            appId: "1:318505631445:web:f3046b77497dd1b460ec5c"
+        };
+
+        // Inicializar Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
         function App() {
             const hoy = new Date();
             
-            // Estado de navegación temporal (Mes y Año seleccionados en vista)
+            // Estados de Usuario y Autenticación
+            const [user, setUser] = useState(null);
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [isRegistering, setIsRegistering] = useState(false);
+            const [authError, setAuthError] = useState('');
+
+            // Estados de la aplicación
             const [mesVista, setMesVista] = useState(hoy.getMonth());
             const [añoVista, setAñoVista] = useState(hoy.getFullYear());
-            const [vista, setVista] = useState('calendario'); // 'calendario' o 'metricas'
+            const [vista, setVista] = useState('calendario'); 
+            const [trades, setTrades] = useState([]);
 
-            // --- MONETIZACIÓN: Estado de acceso Premium ---
-            const [isPremium, setIsPremium] = useState(() => {
-                return localStorage.getItem('trading_journal_premium') === 'true';
-            });
+            const [isPremium, setIsPremium] = useState(() => localStorage.getItem('trading_journal_premium') === 'true');
             const [inputCodigo, setInputCodigo] = useState('');
             const [errorCodigo, setErrorCodigo] = useState(false);
-
-            // Cargar los datos desde el almacenamiento interno del celular
-            const [trades, setTrades] = useState(() => {
-                const guardados = localStorage.getItem('trading_journal_trades');
-                if (guardados) {
-                    return JSON.parse(guardados);
-                } else {
-                    // Datos iniciales de demostración
-                    return [
-                        { id: 1711929600000, activo: 'BTC', resultado: 550.00, estado: 'WIN', dia: 12, mes: 2, año: 2026 },
-                        { id: 1714521600000, activo: 'ETH', resultado: -320.00, estado: 'LOSS', dia: 5, mes: 3, año: 2026 },
-                        { id: 1717113600000, activo: 'SOL', resultado: 1200.00, estado: 'WIN', dia: 10, mes: 4, año: 2026 },
-                        { id: 1717113600001, activo: 'AVAX', resultado: -150.00, estado: 'LOSS', dia: 20, mes: 4, año: 2026 }
-                    ];
-                }
-            });
 
             const [activo, setActivo] = useState('');
             const [resultado, setResultado] = useState('');
@@ -92,50 +95,61 @@
             const chartRef = useRef(null);
             const chartInstance = useRef(null);
 
-            // Guardar automáticamente en LocalStorage al añadir o quitar trades
+            // Escuchar cambios de sesión
             useEffect(() => {
-                localStorage.setItem('trading_journal_trades', JSON.stringify(trades));
-            }, [trades]);
+                const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+                    setUser(currentUser);
+                    if (!currentUser) setTrades([]);
+                });
+                return () => unsubscribe();
+            }, []);
 
-            const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-            const diasSemana = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
-            
-            const primerDiaIndex = new Date(añoVista, mesVista, 1).getDay();
-            const totalDiasMes = new Date(añoVista, mesVista + 1, 0).getDate();
+            // Sincronizar datos con Firestore Cloud
+            useEffect(() => {
+                if (!user) return;
 
-            // Filtrados dinámicos por mes seleccionado
-            const tradesDelMesActual = trades.filter(t => t.mes === mesVista && t.año === añoVista);
-            
-            const obtenerDataDia = (nroDia) => {
-                const tradesDelDia = tradesDelMesActual.filter(t => t.dia === nroDia);
-                if (tradesDelDia.length === 0) return null;
-                const pnlTotal = tradesDelDia.reduce((acc, t) => acc + t.resultado, 0);
-                return { pnl: pnlTotal, count: tradesDelDia.length };
-            };
+                const unsubscribe = db.collection('trades')
+                    .where('userId', '==', user.uid)
+                    .orderBy('id', 'desc')
+                    .onSnapshot((snapshot) => {
+                        const listaTrades = snapshot.docs.map(doc => ({
+                            docId: doc.id,
+                            ...doc.data()
+                        }));
+                        setTrades(listaTrades);
+                    }, (error) => {
+                        console.error("Error en Firestore de Firebase: ", error);
+                    });
 
-            const cambiarMes = (direccion) => {
-                if (direccion === 'prev') {
-                    if (mesVista === 0) {
-                        setMesVista(11); setAñoVista(añoVista - 1);
+                return () => unsubscribe();
+            }, [user]);
+
+            const handleAuth = async (e) => {
+                e.preventDefault();
+                setAuthError('');
+                try {
+                    if (isRegistering) {
+                        await auth.createUserWithEmailAndPassword(email, password);
                     } else {
-                        setMesVista(mesVista - 1);
+                        await auth.signInWithEmailAndPassword(email, password);
                     }
-                } else {
-                    if (mesVista === 11) {
-                        setMesVista(0); setAñoVista(añoVista + 1);
-                    } else {
-                        setMesVista(mesVista + 1);
-                    }
+                } catch (error) {
+                    setAuthError(error.message);
                 }
             };
 
-            const agregarTrade = (e) => {
+            const handleLogout = () => {
+                auth.signOut();
+            };
+
+            const agregarTrade = async (e) => {
                 e.preventDefault();
-                if (!activo || !resultado) return;
+                if (!activo || !resultado || !user) return;
 
                 const monto = parseFloat(resultado);
                 const nuevoTrade = {
                     id: Date.now(),
+                    userId: user.uid,
                     activo: activo.toUpperCase(),
                     resultado: estado === 'WIN' ? Math.abs(monto) : -Math.abs(monto),
                     estado,
@@ -144,22 +158,26 @@
                     año: añoVista
                 };
 
-                setTrades([nuevoTrade, ...trades]);
-                setActivo('');
-                setResultado('');
+                try {
+                    await db.collection('trades').add(nuevoTrade);
+                    setActivo('');
+                    setResultado('');
+                } catch (error) {
+                    console.error("Error al guardar trade: ", error);
+                }
             };
 
-            const eliminarTrade = (id) => {
-                setTrades(trades.filter(t => t.id !== id));
+            const eliminarTrade = async (docId) => {
+                try {
+                    await db.collection('trades').doc(docId).delete();
+                } catch (error) {
+                    console.error("Error al eliminar documento: ", error);
+                }
             };
 
-            // Lógica para verificar el código Premium
             const verificarCodigo = (e) => {
                 e.preventDefault();
-                // AQUÍ DEFINÍS TU CÓDIGO DE ACCESO (Podés cambiarlo por el que quieras)
-                const codigoValido = "TRADERPRO2026"; 
-                
-                if (inputCodigo.trim() === codigoValido) {
+                if (inputCodigo.trim() === "TRADERPRO2026") {
                     setIsPremium(true);
                     setErrorCodigo(false);
                     localStorage.setItem('trading_journal_premium', 'true');
@@ -168,314 +186,197 @@
                 }
             };
 
-            // Métricas del mes y métricas históricas
+            const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            const diasSemana = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
+            const primerDiaIndex = new Date(añoVista, mesVista, 1).getDay();
+            const totalDiasMes = new Date(añoVista, mesVista + 1, 0).getDate();
+            const tradesDelMesActual = trades.filter(t => t.mes === mesVista && t.año === añoVista);
+            
+            const obtenerDataDia = (nroDia) => {
+                const tradesDelDia = tradesDelMesActual.filter(t => t.dia === nroDia);
+                if (tradesDelDia.length === 0) return null;
+                return { pnl: tradesDelDia.reduce((acc, t) => acc + t.resultado, 0), count: tradesDelDia.length };
+            };
+
             const totalPnlMes = tradesDelMesActual.reduce((acc, t) => acc + t.resultado, 0);
             const totalPnlAcumulado = trades.reduce((acc, t) => acc + t.resultado, 0);
-            
-            const winRateMes = tradesDelMesActual.length > 0 
-                ? Math.round((tradesDelMesActual.filter(t => t.estado === 'WIN').length / tradesDelMesActual.length) * 100) 
-                : 0;
-            
-            const winRateGlobal = trades.length > 0
-                ? Math.round((trades.filter(t => t.estado === 'WIN').length / trades.length) * 100)
-                : 0;
 
-            // Instanciación y renderizado de la curva de patrimonio (Solo si es premium)
             useEffect(() => {
-                if (vista === 'metricas' && isPremium && chartRef.current) {
-                    if (chartInstance.current) {
-                        chartInstance.current.destroy();
-                    }
-
+                if (vista === 'metricas' && isPremium && chartRef.current && trades.length > 0) {
+                    if (chartInstance.current) chartInstance.current.destroy();
                     const tradesCronologicos = [...trades].sort((a, b) => a.id - b.id);
                     let balanceAcumulado = 0;
-                    
                     const dataPuntos = [0];
                     const etiquetas = ["Inicio"];
-
-                    tradesCronologicos.forEach((t, index) => {
+                    tradesCronologicos.forEach(t => {
                         balanceAcumulado += t.resultado;
                         dataPuntos.push(balanceAcumulado);
-                        etiquetas.push(`${t.dia}/${t.mes + 1} (${t.activo})`);
+                        etiquetas.push(`${t.dia}/${t.mes + 1}`);
                     });
-
                     const ctx = chartRef.current.getContext('2d');
                     chartInstance.current = new Chart(ctx, {
                         type: 'line',
                         data: {
                             labels: etiquetas,
                             datasets: [{
-                                label: 'Equity Curve ($)',
                                 data: dataPuntos,
                                 borderColor: balanceAcumulado >= 0 ? '#0ecb81' : '#f6465d',
-                                backgroundColor: balanceAcumulado >= 0 ? 'rgba(14, 203, 129, 0.01)' : 'rgba(246, 70, 93, 0.01)',
-                                borderWidth: 2.5,
+                                backgroundColor: 'rgba(0,0,0,0)',
+                                borderWidth: 2,
                                 pointBackgroundColor: '#f0b90b',
-                                pointRadius: 3,
-                                tension: 0.1,
-                                fill: true
+                                pointRadius: 2,
+                                tension: 0.1
                             }]
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                x: { grid: { color: 'rgba(255, 255, 255, 0.01)' }, ticks: { color: '#848d9a', font: { size: 8 } } },
-                                y: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#848d9a', font: { size: 9 } } }
-                            }
-                        }
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
                     });
                 }
-
-                return () => {
-                    if (chartInstance.current) {
-                        chartInstance.current.destroy();
-                        chartInstance.current = null;
-                    }
-                };
+                return () => { if (chartInstance.current) chartInstance.current.destroy(); };
             }, [vista, trades, isPremium]);
 
+            // Interfaz de Autenticación (Login / Registro)
+            if (!user) {
+                return (
+                    <div className="min-h-screen max-w-md mx-auto bg-bgMain flex flex-col justify-center p-6">
+                        <div className="bg-bgCard p-6 rounded-2xl border border-gray-800 shadow-2xl flex flex-col gap-4">
+                            <div className="text-center mb-2">
+                                <h2 className="text-xl font-black text-white uppercase tracking-wider">Trading Journal</h2>
+                                <p className="text-xs text-gray-400 mt-1">Sincronización en la Nube</p>
+                            </div>
+                            <form onSubmit={handleAuth} className="flex flex-col gap-3">
+                                <input 
+                                    type="email" placeholder="Correo electrónico" value={email} onChange={(e) => setEmail(e.target.value)} required
+                                    className="bg-bgInput text-white px-4 py-3 rounded-xl text-xs font-bold outline-none border border-transparent focus:border-gold"
+                                />
+                                <input 
+                                    type="password" placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} required
+                                    className="bg-bgInput text-white px-4 py-3 rounded-xl text-xs font-bold outline-none border border-transparent focus:border-gold"
+                                />
+                                {authError && <p className="text-[10px] text-cryptoRed font-bold text-center">{authError}</p>}
+                                <button type="submit" className="w-full bg-gold text-black font-black py-3 rounded-xl text-xs uppercase tracking-widest mt-1">
+                                    {isRegistering ? 'Crear Cuenta Cloud' : 'Ingresar'}
+                                </button>
+                            </form>
+                            <button onClick={() => setIsRegistering(!isRegistering)} className="text-[11px] text-gray-500 font-bold hover:text-white underline text-center">
+                                {isRegistering ? '¿Ya tenés cuenta? Iniciá sesión' : '¿No tenés cuenta? Registrate gratis'}
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Interfaz Principal de la Aplicación
             return (
                 <div className="min-h-screen max-w-md mx-auto bg-bgMain flex flex-col pb-24">
-                    
-                    {/* App Header */}
                     <header className="bg-bgMain px-4 py-4 border-b border-gray-800 flex justify-between items-center sticky top-0 z-50">
                         <div className="flex items-center gap-2">
                             <div className="w-2.5 h-2.5 bg-cryptoGreen rounded-full"></div>
                             <h1 className="text-base font-black tracking-wider uppercase">Trading Journal</h1>
                         </div>
-                        <span className="text-[10px] text-gray-400 bg-bgCard font-bold px-2 py-0.5 rounded-full border border-gray-800">
-                            {isPremium ? 'PRO UNLOCKED' : 'STANDARD VERSION'}
-                        </span>
+                        <button onClick={handleLogout} className="text-[9px] text-cryptoRed font-bold bg-cryptoRed/10 border border-cryptoRed/20 px-2 py-1 rounded-lg">
+                            CERRAR SESIÓN
+                        </button>
                     </header>
 
                     <main className="p-4 flex flex-col gap-5 flex-1">
-                        
-                        {/* Selector de Navegación de Meses (Solo en calendario o si ya es Premium) */}
                         {(vista === 'calendario' || isPremium) && (
                             <div className="bg-bgCard rounded-2xl border border-gray-800 p-4 shadow-xl">
                                 <div className="flex justify-between items-center mb-4">
                                     <div className="flex items-center gap-2">
-                                        <button onClick={() => cambiarMes('prev')} className="w-8 h-8 rounded-lg bg-bgInput flex items-center justify-center font-bold text-gray-400 active:bg-gray-700">&lt;</button>
+                                        <button onClick={() => setMesVista(mesVista === 0 ? 11 : mesVista - 1)} className="w-8 h-8 rounded-lg bg-bgInput flex items-center justify-center font-bold text-gray-400">&lt;</button>
                                         <h2 className="text-sm font-black text-white uppercase tracking-wide min-w-[110px] text-center">
                                             {nombreMeses[mesVista]} <span className="text-gray-500 font-mono text-xs">{añoVista}</span>
                                         </h2>
-                                        <button onClick={() => cambiarMes('next')} className="w-8 h-8 rounded-lg bg-bgInput flex items-center justify-center font-bold text-gray-400 active:bg-gray-700">&gt;</button>
+                                        <button onClick={() => setMesVista(mesVista === 11 ? 0 : mesVista + 1)} className="w-8 h-8 rounded-lg bg-bgInput flex items-center justify-center font-bold text-gray-400">&gt;</button>
                                     </div>
                                     <span className={`text-xs font-bold font-mono px-2 py-1 rounded ${totalPnlMes >= 0 ? 'text-cryptoGreen bg-cryptoGreen/10' : 'text-cryptoRed bg-cryptoRed/10'}`}>
-                                        {totalPnlMes >= 0 ? '+' : ''}${totalPnlMes.toLocaleString()}
+                                        ${totalPnlMes.toLocaleString()}
                                     </span>
                                 </div>
 
-                                {/* VISTA CALENDARIO */}
-                                {vista === 'calendario' && (
+                                {vista === 'calendario' ? (
                                     <React.Fragment>
                                         <div className="grid grid-cols-7 gap-1 text-center mb-1">
-                                            {diasSemana.map(d => (
-                                                <span key={d} className="text-[9px] text-gray-500 font-bold tracking-tighter">{d}</span>
-                                            ))}
+                                            {diasSemana.map(d => <span key={d} className="text-[9px] text-gray-500 font-bold">{d}</span>)}
                                         </div>
-
                                         <div className="grid grid-cols-7 gap-1.5">
-                                            {Array(primerDiaIndex).fill(null).map((_, i) => (
-                                                <div key={`empty-${i}`} className="aspect-square bg-transparent"></div>
-                                            ))}
-
+                                            {Array(primerDiaIndex).fill(null).map((_, i) => <div key={i}></div>)}
                                             {Array(totalDiasMes).fill(null).map((_, index) => {
                                                 const nroDia = index + 1;
                                                 const dataDia = obtenerDataDia(nroDia);
-                                                
-                                                let bgCelda = "bg-bgInput/40 text-gray-400 border border-transparent";
-                                                if (dataDia) {
-                                                    bgCelda = dataDia.pnl >= 0 ? "bg-cryptoGreen text-black font-bold" : "bg-cryptoRed text-white font-bold";
-                                                }
-
                                                 return (
-                                                    <div 
-                                                        key={nroDia} 
-                                                        onClick={() => setDiaSeleccionado(nroDia)}
-                                                        className={`aspect-square rounded-lg flex flex-col justify-between p-1 text-[10px] transition-all cursor-pointer ${bgCelda} ${diaSeleccionado === nroDia ? 'ring-2 ring-gold scale-105 z-10' : ''}`}
-                                                    >
-                                                        <span className="font-mono">{String(nroDia).padStart(2, '0')}</span>
-                                                        {dataDia && (
-                                                            <span className="text-[7px] tracking-tighter truncate font-mono leading-none text-center block w-full">
-                                                                {dataDia.pnl >= 0 ? '+' : ''}{Math.round(dataDia.pnl)}
-                                                            </span>
-                                                        )}
+                                                    <div key={nroDia} onClick={() => setDiaSeleccionado(nroDia)} className={`aspect-square rounded-lg flex flex-col justify-between p-1 text-[10px] cursor-pointer ${dataDia ? (dataDia.pnl >= 0 ? 'bg-cryptoGreen text-black font-bold' : 'bg-cryptoRed text-white font-bold') : 'bg-bgInput/40 text-gray-400'} ${diaSeleccionado === nroDia ? 'ring-2 ring-gold' : ''}`}>
+                                                        <span>{nroDia}</span>
+                                                        {dataDia && <span className="text-[7px] truncate">{Math.round(dataDia.pnl)}</span>}
                                                     </div>
                                                 );
                                             })}
                                         </div>
                                     </React.Fragment>
-                                )}
-
-                                {/* VISTA DE MÉTRICAS AVANZADAS (GRÁFICO - SÓLO PREMIUM) */}
-                                {(vista === 'metricas' && isPremium) && (
-                                    <div className="w-full relative h-[180px]">
-                                        {trades.length === 0 ? (
-                                            <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-500 italic">No hay registros globales para computar</div>
-                                        ) : (
-                                            <canvas ref={chartRef}></canvas>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* PANTALLA DE BLOQUEO DE MONETIZACIÓN (SÓLO SI NO ES PREMIUM) */}
-                        {(vista === 'metricas' && !isPremium) && (
-                            <div className="bg-bgCard rounded-2xl border border-gray-800 p-6 shadow-xl flex flex-col items-center text-center gap-5 my-auto">
-                                <div className="w-14 h-14 bg-gold/10 text-gold rounded-full flex items-center justify-center border border-gold/30 text-2xl">
-                                    🔒
-                                </div>
-                                <div>
-                                    <h2 className="text-base font-black text-white uppercase tracking-wide">Métricas Avanzadas Pro</h2>
-                                    <p className="text-xs text-gray-400 mt-1 px-4">Desbloqueá el análisis profundo de tu operativa y lleva un control profesional.</p>
-                                </div>
-
-                                <ul className="text-left w-full bg-bgMain/60 p-4 rounded-xl border border-gray-800 text-xs flex flex-col gap-2 text-gray-300 font-medium">
-                                    <li className="flex items-center gap-2">✨ Curva de crecimiento patrimonial (Equity Curve).</li>
-                                    <li className="flex items-center gap-2">📊 Historial acumulado total de todos los meses.</li>
-                                    <li className="flex items-center gap-2">🎯 Win Rate global histórico e indexado.</li>
-                                </ul>
-
-                                <form onSubmit={verificarCodigo} className="w-full flex flex-col gap-2.5 mt-2">
-                                    <input 
-                                        type="text" 
-                                        placeholder="Ingresá tu código de acceso Pro" 
-                                        value={inputCodigo}
-                                        onChange={(e) => setInputCodigo(e.target.value)}
-                                        className={`bg-bgInput text-white px-4 py-3 rounded-xl text-xs font-bold border text-center uppercase tracking-widest outline-none transition-all ${errorCodigo ? 'border-cryptoRed focus:border-cryptoRed' : 'border-transparent focus:border-gold'}`}
-                                    />
-                                    {errorCodigo && (
-                                        <span className="text-[10px] text-cryptoRed font-bold">Código incorrecto. Verificá y volvé a intentar.</span>
-                                    )}
-                                    <button type="submit" className="w-full bg-gold text-black font-black py-3 rounded-xl text-xs uppercase tracking-widest mt-1 shadow-md active:scale-[0.98] transition-all">
-                                        Validar Licencia Pro
-                                    </button>
-                                </form>
-                            </div>
-                        )}
-
-                        {/* MÓDULO COMPARATIVO DE MÉTRICAS GLOBAL VS MES (SÓLO PREMIUM) */}
-                        {(vista === 'metricas' && isPremium) && (
-                            <div className="grid grid-cols-2 gap-2.5">
-                                <div className="bg-bgCard p-3 rounded-xl border border-gray-800">
-                                    <span className="text-[9px] text-gray-500 font-bold block uppercase tracking-wider">PnL {nombreMeses[mesVista]}</span>
-                                    <span className={`text-sm font-black mt-0.5 block ${totalPnlMes >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
-                                        {totalPnlMes >= 0 ? '+' : ''}${totalPnlMes.toLocaleString()}
-                                    </span>
-                                    <span className="text-[9px] text-gray-400 font-mono block mt-0.5">🎯 WR: {winRateMes}%</span>
-                                </div>
-
-                                <div className="bg-bgCard p-3 rounded-xl border border-gold/20 relative overflow-hidden">
-                                    <span className="text-[9px] text-gold font-bold block uppercase tracking-wider">Total Acumulado</span>
-                                    <span className={`text-sm font-black mt-0.5 block ${totalPnlAcumulado >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
-                                        {totalPnlAcumulado >= 0 ? '+' : ''}${totalPnlAcumulado.toLocaleString()}
-                                    </span>
-                                    <span className="text-[9px] text-gray-400 font-mono block mt-0.5">🌍 Global WR: {winRateGlobal}%</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* FORMULARIO DE REGISTRO DE TRADES */}
-                        {vista === 'calendario' && (
-                            <div className="bg-bgCard p-4 rounded-2xl border border-gray-800 shadow-md">
-                                <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Registrar en Día {diaSeleccionado} de {nombreMeses[mesVista]}</h3>
-                                <form onSubmit={agregarTrade} className="flex flex-col gap-3">
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <input 
-                                            type="text" 
-                                            placeholder="Activo (BTC, SOL)" 
-                                            value={activo}
-                                            onChange={(e) => setActivo(e.target.value)}
-                                            className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-bold border border-transparent focus:border-gray-700 outline-none"
-                                        />
-                                        <input 
-                                            type="number" 
-                                            placeholder="PnL Neto USD" 
-                                            value={resultado}
-                                            onChange={(e) => setResultado(e.target.value)}
-                                            className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-mono font-bold border border-transparent focus:border-gray-700 outline-none"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <button 
-                                            type="button"
-                                            onClick={() => setEstado('WIN')}
-                                            className={`py-2 rounded-xl text-xs font-black transition-all ${estado === 'WIN' ? 'bg-cryptoGreen text-black' : 'bg-bgInput text-gray-500'}`}
-                                        >
-                                            PROFIT (WIN)
-                                        </button>
-                                        <button 
-                                            type="button"
-                                            onClick={() => setEstado('LOSS')}
-                                            className={`py-2 rounded-xl text-xs font-black transition-all ${estado === 'LOSS' ? 'bg-cryptoRed text-white' : 'bg-bgInput text-gray-500'}`}
-                                        >
-                                            LOSS (PÉRDIDA)
-                                        </button>
-                                    </div>
-
-                                    <button type="submit" className="w-full bg-gold text-black font-black py-3 rounded-xl text-xs uppercase tracking-widest mt-1">
-                                        Añadir al Calendario
-                                    </button>
-                                </form>
-                            </div>
-                        )}
-
-                        {/* LISTADO HISTÓRICO DEL MES SELECCIONADO */}
-                        <div>
-                            <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-1">Trades de {nombreMeses[mesVista]}</h3>
-                            <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-1">
-                                {tradesDelMesActual.length === 0 ? (
-                                    <p className="text-xs text-gray-600 text-center py-4 font-semibold italic">No hay operaciones en este período.</p>
                                 ) : (
-                                    tradesDelMesActual.map((t) => (
-                                        <div key={t.id} className="bg-bgCard pl-4 pr-2 py-2.5 rounded-xl border border-gray-800/80 flex justify-between items-center gap-2">
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <span className="text-[10px] font-mono font-bold text-gray-500 shrink-0">DÍA {String(t.dia).padStart(2, '0')}</span>
-                                                <span className="font-black text-sm text-white truncate">{t.activo}</span>
-                                            </div>
-                                            <div className="flex items-center gap-3 shrink-0">
-                                                <span className={`font-mono font-bold text-xs ${t.resultado >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>
-                                                    {t.resultado >= 0 ? '+' : ''}${t.resultado.toLocaleString()}
-                                                </span>
-                                                <button 
-                                                    onClick={() => eliminarTrade(t.id)}
-                                                    className="w-6 h-6 rounded-md bg-gray-800 hover:bg-cryptoRed/20 text-gray-400 hover:text-cryptoRed flex items-center justify-center text-sm font-bold transition-all"
-                                                >
-                                                    &times;
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))
+                                    <div className="w-full relative h-[180px]"><canvas ref={chartRef}></canvas></div>
                                 )}
+                            </div>
+                        )}
+
+                        {(vista === 'metricas' && !isPremium) && (
+                            <div className="bg-bgCard rounded-2xl border border-gray-800 p-6 text-center flex flex-col items-center gap-4">
+                                <span className="text-2xl">🔒</span>
+                                <h2 className="text-sm font-black text-white uppercase">Métricas Avanzadas Pro</h2>
+                                <form onSubmit={verificarCodigo} className="w-full flex flex-col gap-2">
+                                    <input type="text" placeholder="Código de acceso Pro" value={inputCodigo} onChange={(e) => setInputCodigo(e.target.value)} className="bg-bgInput text-white px-4 py-2.5 rounded-xl text-xs text-center border border-transparent focus:border-gold uppercase tracking-widest outline-none"/>
+                                    {errorCodigo && <span className="text-[9px] text-cryptoRed font-bold">Código incorrecto.</span>}
+                                    <button type="submit" className="bg-gold text-black font-black py-2.5 rounded-xl text-xs uppercase tracking-wider">Validar Código</button>
+                                </form>
+                            </div>
+                        )}
+
+                        {(vista === 'metricas' && isPremium) && (
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="bg-bgCard p-3 rounded-xl border border-gray-800"><span className="text-[9px] text-gray-500 font-bold block">PnL MES</span><span className="text-sm font-black text-white">${totalPnlMes}</span></div>
+                                <div className="bg-bgCard p-3 rounded-xl border border-gold/20"><span className="text-[9px] text-gold font-bold block">ACUMULADO</span><span className="text-sm font-black text-white">${totalPnlAcumulado}</span></div>
+                            </div>
+                        )}
+
+                        {vista === 'calendario' && (
+                            <form onSubmit={agregarTrade} className="bg-bgCard p-4 rounded-2xl border border-gray-800 flex flex-col gap-3">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input type="text" placeholder="Activo (BTC)" value={activo} onChange={(e) => setActivo(e.target.value)} className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-bold outline-none"/>
+                                    <input type="number" placeholder="Resultado USD" value={resultado} onChange={(e) => setResultado(e.target.value)} className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-bold outline-none"/>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button type="button" onClick={() => setEstado('WIN')} className={`py-2 rounded-xl text-xs font-bold ${estado === 'WIN' ? 'bg-cryptoGreen text-black' : 'bg-bgInput'}`}>WIN</button>
+                                    <button type="button" onClick={() => setEstado('LOSS')} className={`py-2 rounded-xl text-xs font-bold ${estado === 'LOSS' ? 'bg-cryptoRed text-white' : 'bg-bgInput'}`}>LOSS</button>
+                                </div>
+                                <button type="submit" className="bg-gold text-black font-black py-3 rounded-xl text-xs uppercase tracking-wider">Guardar en la Nube</button>
+                            </form>
+                        )}
+
+                        <div>
+                            <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-1">Operaciones del Mes</h3>
+                            <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto">
+                                {tradesDelMesActual.map(t => (
+                                    <div key={t.id} className="bg-bgCard px-4 py-3 rounded-xl border border-gray-800 flex justify-between items-center">
+                                        <span className="text-xs font-black text-white">{t.activo} (Día {t.dia})</span>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`font-bold text-xs ${t.resultado >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>${t.resultado}</span>
+                                            <button onClick={() => eliminarTrade(t.docId)} className="text-gray-500 hover:text-cryptoRed font-bold">&times;</button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-
                     </main>
 
-                    {/* Menú de Navegación Inferior Estilo App Nativa */}
+                    {/* Navegación Fija Inferior */}
                     <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-bgCard border-t border-gray-800 px-12 py-4 flex justify-between items-center z-50">
-                        <button 
-                            onClick={() => setVista('calendario')}
-                            className={`flex flex-col items-center gap-1 transition-all ${vista === 'calendario' ? 'text-gold scale-105' : 'text-gray-600'}`}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                        <button onClick={() => setVista('calendario')} className={`flex flex-col items-center gap-1 ${vista === 'calendario' ? 'text-gold' : 'text-gray-600'}`}>
                             <span className="text-[9px] font-black uppercase tracking-wider">Calendario</span>
                         </button>
-                        
-                        <button 
-                            onClick={() => setVista('metricas')}
-                            className={`flex flex-col items-center gap-1 transition-all ${vista === 'metricas' ? 'text-gold scale-105' : 'text-gray-600'}`}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+                        <button onClick={() => setVista('metricas')} className={`flex flex-col items-center gap-1 ${vista === 'metricas' ? 'text-gold' : 'text-gray-600'}`}>
                             <span className="text-[9px] font-black uppercase tracking-wider">Métricas</span>
                         </button>
                     </nav>
-
                 </div>
             );
         }
@@ -483,9 +384,6 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-
-    <!-- SCRIPT DE SEGUIMIENTO OFICIAL DE VERCEL ANALYTICS PARA SITIOS ESTÁTICOS -->
     <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
-                   
