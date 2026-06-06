@@ -9,7 +9,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0e11">
 
-    <!-- Tailwind CSS y Chart.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -37,12 +36,10 @@
 <body class="text-gray-200 font-sans antialiased">
     <div id="root"></div>
 
-    <!-- Scripts de React y Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- LIBRERÍAS OFICIALES DE FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -50,28 +47,23 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // Configuración limpia sin caracteres ocultos
-        // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+        // Tus credenciales reales actualizadas sin caracteres ocultos
+        const firebaseConfig = {
+            apiKey: "AIzaSyAts93tvWY702grlHPGnh6ID1QeR_3XQc",
+            authDomain: "tradingjournalpro-3507c.firebaseapp.com",
+            projectId: "tradingjournalpro-3507c",
+            storageBucket: "tradingjournalpro-3507c.firebasestorage.app",
+            messagingSenderId: "318505631445",
+            appId: "1:318505631445:web:f3046b77497dd1b460ec5c",
+            measurementId: "G-48ZJ22DD37"
+        };
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAts93tv8WY702grlHPGnh6ID1QeR_3XQc",
-  authDomain: "tradingjournalpro-3507c.firebaseapp.com",
-  projectId: "tradingjournalpro-3507c",
-  storageBucket: "tradingjournalpro-3507c.firebasestorage.app",
-  messagingSenderId: "318505631445",
-  appId: "1:318505631445:web:f3046b77497dd1b460ec5c",
-  measurementId: "G-48ZJ22DD37"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+        // Inicializar Firebase globalmente
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
         function App() {
             const hoy = new Date();
@@ -392,3 +384,4 @@ const analytics = getAnalytics(app);
     </script>
 </body>
 </html>
+                        
