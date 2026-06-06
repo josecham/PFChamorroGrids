@@ -81,7 +81,7 @@
             const [vista, setVista] = useState('calendario'); 
             const [trades, setTrades] = useState([]);
 
-            const [isPremium, setIsPremium] = useState(() => localStorage.getItem('trading_journal_premium') === 'true');
+            const [isPremium, setIsPremium] = useState(true);
             const [inputCodigo, setInputCodigo] = useState('');
             const [errorCodigo, setErrorCodigo] = useState(false);
 
@@ -317,17 +317,7 @@
                             </div>
                         )}
 
-                        {(vista === 'metricas' && !isPremium) && (
-                            <div className="bg-bgCard rounded-2xl border border-gray-800 p-6 text-center flex flex-col items-center gap-4">
-                                <span className="text-2xl">🔒</span>
-                                <h2 className="text-sm font-black text-white uppercase">Métricas Avanzadas Pro</h2>
-                                <form onSubmit={verificarCodigo} className="w-full flex flex-col gap-2">
-                                    <input type="text" placeholder="Código de acceso Pro" value={inputCodigo} onChange={(e) => setInputCodigo(e.target.value)} className="bg-bgInput text-white px-4 py-2.5 rounded-xl text-xs text-center border border-transparent focus:border-gold uppercase tracking-widest outline-none"/>
-                                    {errorCodigo && <span className="text-[9px] text-cryptoRed font-bold">Código incorrecto.</span>}
-                                    <button type="submit" className="bg-gold text-black font-black py-2.5 rounded-xl text-xs uppercase tracking-wider">Validar Código</button>
-                                </form>
-                            </div>
-                        )}
+                       
 
                         {(vista === 'metricas' && isPremium) && (
                             <div className="grid grid-cols-2 gap-2">
