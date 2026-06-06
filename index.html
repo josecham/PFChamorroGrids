@@ -52,15 +52,16 @@
 
         // Configuración limpia sin caracteres ocultos
         const firebaseConfig = {
-            apiKey: "AIzaSyAts93tv702grlHPGnh6ID1QeR_3XQc",
+            apiKey: "AIzaSyAts93tv702grlHPGnh6ID1QeR_3XQc", // Tu nueva API Key
             authDomain: "tradingjournalpro-3507c.firebaseapp.com",
             projectId: "tradingjournalpro-3507c",
             storageBucket: "tradingjournalpro-3507c.firebasestorage.app",
             messagingSenderId: "318505631445",
-            appId: "1:318505631445:web:f3046b77497dd1b460ec5c"
+            appId: "1:318505631445:web:f3046b77497dd1b460ec5c",
+            measurementId: "G-48ZJ22DD37" // Agregado por si querés analíticas
         };
 
-        // Inicializar Firebase
+        // Inicializar Firebase (Versión navegador compatible)
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
