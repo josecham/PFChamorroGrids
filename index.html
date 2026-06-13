@@ -88,7 +88,6 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Función auxiliar global para detonar el confeti
         const dispararConfeti = () => {
             const container = document.createElement('div');
             container.className = 'confetti-container';
@@ -99,23 +98,14 @@
             for (let i = 0; i < 70; i++) {
                 const pieza = document.createElement('div');
                 pieza.className = 'confetti-piece';
-                
-                // Distribución horizontal aleatoria
                 pieza.style.left = Math.random() * 100 + 'vw';
-                // Color aleatorio
                 pieza.style.backgroundColor = colores[Math.floor(Math.random() * colores.length)];
-                // Velocidad de caída aleatoria (entre 1.5 y 3.5 segundos)
                 pieza.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
-                // Retraso aleatorio para que caigan en oleadas
                 pieza.style.animationDelay = (Math.random() * 0.4) + 's';
-                
                 container.appendChild(pieza);
             }
 
-            // Limpiar el DOM una vez terminada la animación
-            setTimeout(() => {
-                container.remove();
-            }, 4000);
+            setTimeout(() => { container.remove(); }, 4000);
         };
 
         function App() {
@@ -133,8 +123,6 @@
             const [trades, setTrades] = useState([]);
 
             const [isPremium, setIsPremium] = useState(true);
-            const [inputCodigo, setInputCodigo] = useState('');
-            const [errorCodigo, setErrorCodigo] = useState(false);
 
             const [activo, setActivo] = useState('');
             const [resultado, setResultado] = useState('');
@@ -186,9 +174,7 @@
                 }
             };
 
-            const handleLogout = () => {
-                auth.signOut();
-            };
+            const handleLogout = () => { auth.signOut(); };
 
             const agregarTrade = async (e) => {
                 e.preventDefault();
@@ -209,12 +195,7 @@
 
                 try {
                     await db.collection('trades').add(nuevoTrade);
-                    
-                    // Si el trade fue ganador, tiramos los confetis 🎉
-                    if (estado === 'WIN') {
-                        dispararConfeti();
-                    }
-
+                    if (estado === 'WIN') { dispararConfeti(); }
                     setActivo('');
                     setResultado('');
                     setEmocion('😊');
@@ -245,6 +226,37 @@
 
             const totalPnlMes = tradesDelMesActual.reduce((acc, t) => acc + t.resultado, 0);
             const totalPnlAcumulado = trades.reduce((acc, t) => acc + t.resultado, 0);
+
+            // Lógica para calcular la emoción dominante del mes actual
+            const obtenerEmocionDominante = () => {
+                if (tradesDelMesActual.length === 0) return { emoji: '❔', texto: 'Sin datos' };
+                
+                const conteo = {};
+                tradesDelMesActual.forEach(t => {
+                    const emo = t.emocion || '😊';
+                    conteo[emo] = (conteo[emo] || 0) + 1;
+                });
+
+                let maxEmo = '😊';
+                let maxConteo = 0;
+                for (const key in conteo) {
+                    if (conteo[key] > maxConteo) {
+                        maxConteo = conteo[key];
+                        maxEmo = key;
+                    }
+                }
+
+                const mapaTextos = {
+                    '😊': 'Calmo / Focalizado',
+                    '😰': 'Ansioso / Apurado',
+                    '😡': 'Enojado (Furia)',
+                    '😨': 'Miedo al mercado'
+                };
+
+                return { emoji: maxEmo, texto: mapaTextos[maxEmo] || 'Desconocido' };
+            };
+
+            const emocionDominante = obtenerEmocionDominante();
 
             useEffect(() => {
                 if (vista === 'metricas' && isPremium && chartRef.current && trades.length > 0) {
@@ -367,10 +379,34 @@
                             </div>
                         )}
 
+                        {/* Fila de Métricas Avanzadas */}
                         {(vista === 'metricas' && isPremium) && (
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="bg-bgCard p-3 rounded-xl border border-gray-800"><span className="text-[9px] text-gray-500 font-bold block">PnL MES</span><span className="text-sm font-black text-white">${totalPnlMes}</span></div>
-                                <div className="bg-bgCard p-3 rounded-xl border border-gold/20"><span className="text-[9px] text-gold font-bold block">ACUMULADO</span><span className="text-sm font-black text-white">${totalPnlAcumulado}</span></div>
+                            <div className="flex flex-col gap-2">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="bg-bgCard p-3 rounded-xl border border-gray-800">
+                                        <span className="text-[9px] text-gray-500 font-bold block">PnL MES</span>
+                                        <span className="text-sm font-black text-white">${totalPnlMes}</span>
+                                    </div>
+                                    <div className="bg-bgCard p-3 rounded-xl border border-gold/20">
+                                        <span className="text-[9px] text-gold font-bold block">ACUMULADO</span>
+                                        <span className="text-sm font-black text-white">${totalPnlAcumulado}</span>
+                                    </div>
+                                </div>
+                                
+                                {/* NUEVO CARD: Emoción Dominante del Mes */}
+                                <div className="bg-bgCard p-3 rounded-xl border border-gray-800 flex items-center justify-between">
+                                    <div>
+                                        <span className="text-[9px] text-gray-400 font-bold block uppercase tracking-wider">Métrica Psicotrading</span>
+                                        <span className="text-xs font-black text-white block mt-0.5">Emoción Dominante</span>
+                                        <span className="text-[10px] text-gray-500 font-medium">{emocionDominante.texto}</span>
+                                    </div>
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${
+                                        emocionDominante.emoji === '😊' ? 'bg-cryptoGreen/10 border border-cryptoGreen/20' :
+                                        emocionDominante.emoji === '❔' ? 'bg-bgInput' : 'bg-cryptoRed/10 border border-cryptoRed/20'
+                                    }`}>
+                                        {emocionDominante.emoji}
+                                    </div>
+                                </div>
                             </div>
                         )}
 
@@ -445,9 +481,11 @@
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        root.render(() => <App />);
     </script>
 </body>
 </html>
+       
+     
      
    
