@@ -47,7 +47,6 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // Tus credenciales reales actualizadas sin caracteres ocultos
         const firebaseConfig = {
             apiKey: "AIzaSyAts93tv8WY702grlHPGnh6ID1QeR_3XQc",
             authDomain: "tradingjournalpro-3507c.firebaseapp.com",
@@ -58,7 +57,6 @@
             measurementId: "G-48ZJ22DD37"
         };
 
-        // Inicializar Firebase globalmente
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -68,14 +66,12 @@
         function App() {
             const hoy = new Date();
             
-            // Estados de Usuario y Autenticación
             const [user, setUser] = useState(null);
             const [email, setEmail] = useState('');
             const [password, setPassword] = useState('');
             const [isRegistering, setIsRegistering] = useState(false);
             const [authError, setAuthError] = useState('');
 
-            // Estados de la aplicación
             const [mesVista, setMesVista] = useState(hoy.getMonth());
             const [añoVista, setAñoVista] = useState(hoy.getFullYear());
             const [vista, setVista] = useState('calendario'); 
@@ -88,12 +84,12 @@
             const [activo, setActivo] = useState('');
             const [resultado, setResultado] = useState('');
             const [estado, setEstado] = useState('WIN');
+            const [emocion, setEmocion] = useState('😊'); // Estado para la emoción seleccionada
             const [diaSeleccionado, setDiaSeleccionado] = useState(hoy.getDate());
             
             const chartRef = useRef(null);
             const chartInstance = useRef(null);
 
-            // Escuchar cambios de sesión
             useEffect(() => {
                 const unsubscribe = auth.onAuthStateChanged((currentUser) => {
                     setUser(currentUser);
@@ -102,7 +98,6 @@
                 return () => unsubscribe();
             }, []);
 
-            // Sincronizar datos con Firestore Cloud
             useEffect(() => {
                 if (!user) return;
 
@@ -151,6 +146,7 @@
                     activo: activo.toUpperCase(),
                     resultado: estado === 'WIN' ? Math.abs(monto) : -Math.abs(monto),
                     estado,
+                    emocion, // Guardamos la emoción en la base de datos
                     dia: parseInt(diaSeleccionado),
                     mes: mesVista,
                     año: añoVista
@@ -160,6 +156,7 @@
                     await db.collection('trades').add(nuevoTrade);
                     setActivo('');
                     setResultado('');
+                    setEmocion('😊'); // Reseteamos la emoción por defecto
                 } catch (error) {
                     console.error("Error al guardar trade: ", error);
                 }
@@ -170,17 +167,6 @@
                     await db.collection('trades').doc(docId).delete();
                 } catch (error) {
                     console.error("Error al eliminar documento: ", error);
-                }
-            };
-
-            const verificarCodigo = (e) => {
-                e.preventDefault();
-                if (inputCodigo.trim() === "TRADERPRO2026") {
-                    setIsPremium(true);
-                    setErrorCodigo(false);
-                    localStorage.setItem('trading_journal_premium', 'true');
-                } else {
-                    setErrorCodigo(true);
                 }
             };
 
@@ -232,7 +218,6 @@
                 return () => { if (chartInstance.current) chartInstance.current.destroy(); };
             }, [vista, trades, isPremium]);
 
-            // Interfaz de Autenticación (Login / Registro)
             if (!user) {
                 return (
                     <div className="min-h-screen max-w-md mx-auto bg-bgMain flex flex-col justify-center p-6">
@@ -263,7 +248,6 @@
                 );
             }
 
-            // Interfaz Principal de la Aplicación
             return (
                 <div className="min-h-screen max-w-md mx-auto bg-bgMain flex flex-col pb-24">
                     <header className="bg-bgMain px-4 py-4 border-b border-gray-800 flex justify-between items-center sticky top-0 z-50">
@@ -271,9 +255,15 @@
                             <div className="w-2.5 h-2.5 bg-cryptoGreen rounded-full"></div>
                             <h1 className="text-base font-black tracking-wider uppercase">Trading Journal</h1>
                         </div>
-                        <button onClick={handleLogout} className="text-[9px] text-cryptoRed font-bold bg-cryptoRed/10 border border-cryptoRed/20 px-2 py-1 rounded-lg">
-                            CERRAR SESIÓN
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {/* Link directo a tu Comunidad de Facebook */}
+                            <a href="https://www.facebook.com/share/g/1BBVwh32q1/" target="_blank" rel="noopener noreferrer" className="text-[9px] text-white font-black bg-blue-600/20 border border-blue-500/30 px-2 py-1 rounded-lg hover:bg-blue-600/40 transition">
+                                COMUNIDAD 👥
+                            </a>
+                            <button onClick={handleLogout} className="text-[9px] text-cryptoRed font-bold bg-cryptoRed/10 border border-cryptoRed/20 px-2 py-1 rounded-lg">
+                                CERRAR SESIÓN
+                            </button>
+                        </div>
                     </header>
 
                     <main className="p-4 flex flex-col gap-5 flex-1">
@@ -317,8 +307,6 @@
                             </div>
                         )}
 
-                       
-
                         {(vista === 'metricas' && isPremium) && (
                             <div className="grid grid-cols-2 gap-2">
                                 <div className="bg-bgCard p-3 rounded-xl border border-gray-800"><span className="text-[9px] text-gray-500 font-bold block">PnL MES</span><span className="text-sm font-black text-white">${totalPnlMes}</span></div>
@@ -332,6 +320,30 @@
                                     <input type="text" placeholder="Activo (BTC)" value={activo} onChange={(e) => setActivo(e.target.value)} className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-bold outline-none"/>
                                     <input type="number" placeholder="Resultado USD" value={resultado} onChange={(e) => setResultado(e.target.value)} className="bg-bgInput text-white px-3 py-2.5 rounded-xl text-xs font-bold outline-none"/>
                                 </div>
+                                
+                                {/* Nueva Sección de Psicotrading: Sensaciones / Emociones */}
+                                <div className="flex flex-col gap-1.5">
+                                    <span className="text-[10px] text-gray-500 font-bold uppercase px-1">Psicotrading (Estado Emocional)</span>
+                                    <div className="grid grid-cols-4 gap-1.5">
+                                        {[
+                                            { emoji: '😊', label: 'Calmo' },
+                                            { emoji: '😰', label: 'Ansioso' },
+                                            { emoji: '😡', label: 'Enojado' },
+                                            { emoji: '😨', label: 'Miedo' }
+                                        ].map(item => (
+                                            <button 
+                                                key={item.emoji} 
+                                                type="button" 
+                                                onClick={() => setEmocion(item.emoji)}
+                                                className={`py-2 rounded-xl flex flex-col items-center justify-center border transition ${emocion === item.emoji ? 'bg-bgInput border-gold text-white' : 'bg-bgInput/40 border-transparent text-gray-400'}`}
+                                            >
+                                                <span className="text-base">{item.emoji}</span>
+                                                <span className="text-[8px] font-bold uppercase mt-0.5">{item.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
                                 <div className="grid grid-cols-2 gap-2">
                                     <button type="button" onClick={() => setEstado('WIN')} className={`py-2 rounded-xl text-xs font-bold ${estado === 'WIN' ? 'bg-cryptoGreen text-black' : 'bg-bgInput'}`}>WIN</button>
                                     <button type="button" onClick={() => setEstado('LOSS')} className={`py-2 rounded-xl text-xs font-bold ${estado === 'LOSS' ? 'bg-cryptoRed text-white' : 'bg-bgInput'}`}>LOSS</button>
@@ -345,7 +357,13 @@
                             <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto">
                                 {tradesDelMesActual.map(t => (
                                     <div key={t.id} className="bg-bgCard px-4 py-3 rounded-xl border border-gray-800 flex justify-between items-center">
-                                        <span className="text-xs font-black text-white">{t.activo} (Día {t.dia})</span>
+                                        <div className="flex items-center gap-2">
+                                            {/* Renderizado de la emoción guardada en el historial */}
+                                            <span className="text-base bg-bgInput/60 p-1.5 rounded-lg flex items-center justify-center w-7 h-7" title="Sensación al operar">
+                                                {t.emocion || '😊'}
+                                            </span>
+                                            <span className="text-xs font-black text-white">{t.activo} (Día {t.dia})</span>
+                                        </div>
                                         <div className="flex items-center gap-3">
                                             <span className={`font-bold text-xs ${t.resultado >= 0 ? 'text-cryptoGreen' : 'text-cryptoRed'}`}>${t.resultado}</span>
                                             <button onClick={() => eliminarTrade(t.docId)} className="text-gray-500 hover:text-cryptoRed font-bold">&times;</button>
@@ -356,7 +374,6 @@
                         </div>
                     </main>
 
-                    {/* Navegación Fija Inferior */}
                     <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-bgCard border-t border-gray-800 px-12 py-4 flex justify-between items-center z-50">
                         <button onClick={() => setVista('calendario')} className={`flex flex-col items-center gap-1 ${vista === 'calendario' ? 'text-gold' : 'text-gray-600'}`}>
                             <span className="text-[9px] font-black uppercase tracking-wider">Calendario</span>
@@ -374,4 +391,4 @@
     </script>
 </body>
 </html>
-                        
+           
