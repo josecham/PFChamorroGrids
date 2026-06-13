@@ -227,7 +227,6 @@
             const totalPnlMes = tradesDelMesActual.reduce((acc, t) => acc + t.resultado, 0);
             const totalPnlAcumulado = trades.reduce((acc, t) => acc + t.resultado, 0);
 
-            // Lógica para calcular la emoción dominante del mes actual
             const obtenerEmocionDominante = () => {
                 if (tradesDelMesActual.length === 0) return { emoji: '❔', texto: 'Sin datos' };
                 
@@ -379,7 +378,6 @@
                             </div>
                         )}
 
-                        {/* Fila de Métricas Avanzadas */}
                         {(vista === 'metricas' && isPremium) && (
                             <div className="flex flex-col gap-2">
                                 <div className="grid grid-cols-2 gap-2">
@@ -393,7 +391,6 @@
                                     </div>
                                 </div>
                                 
-                                {/* NUEVO CARD: Emoción Dominante del Mes */}
                                 <div className="bg-bgCard p-3 rounded-xl border border-gray-800 flex items-center justify-between">
                                     <div>
                                         <span className="text-[9px] text-gray-400 font-bold block uppercase tracking-wider">Métrica Psicotrading</span>
@@ -481,7 +478,10 @@
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(() => <App />);
+        root.render(<App />);
     </script>
 </body>
 </html>
+      
+                                 
+                              
