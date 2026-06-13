@@ -32,7 +32,6 @@
         body { background-color: #0b0e11; user-select: none; -webkit-tap-highlight-color: transparent; overflow-y: auto; }
         ::-webkit-scrollbar { display: none; }
 
-        /* Estilos y animaciones custom para el confeti */
         .confetti-container {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -127,7 +126,8 @@
             const [activo, setActivo] = useState('');
             const [resultado, setResultado] = useState('');
             const [estado, setEstado] = useState('WIN');
-            const [emocion, setEmocion] = useState('😊');
+            // Cambiado a la carita feliz de la Captura de pantalla (1959).png
+            const [emocion, setEmocion] = useState('🤩'); 
             const [diaSeleccionado, setDiaSeleccionado] = useState(hoy.getDate());
             
             const chartRef = useRef(null);
@@ -198,7 +198,7 @@
                     if (estado === 'WIN') { dispararConfeti(); }
                     setActivo('');
                     setResultado('');
-                    setEmocion('😊');
+                    setEmocion('🤩');
                 } catch (error) {
                     console.error("Error al guardar trade: ", error);
                 }
@@ -232,11 +232,11 @@
                 
                 const conteo = {};
                 tradesDelMesActual.forEach(t => {
-                    const emo = t.emocion || '😊';
+                    const emo = t.emocion || '🤩';
                     conteo[emo] = (conteo[emo] || 0) + 1;
                 });
 
-                let maxEmo = '😊';
+                let maxEmo = '🤩';
                 let maxConteo = 0;
                 for (const key in conteo) {
                     if (conteo[key] > maxConteo) {
@@ -246,10 +246,10 @@
                 }
 
                 const mapaTextos = {
-                    '😊': 'Calmo / Focalizado',
+                    '🤩': 'Calmo / Focalizado',
                     '😰': 'Ansioso / Apurado',
                     '😡': 'Enojado (Furia)',
-                    '😨': 'Miedo al mercado'
+                    '😱': 'Miedo al mercado'
                 };
 
                 return { emoji: maxEmo, texto: mapaTextos[maxEmo] || 'Desconocido' };
@@ -398,7 +398,7 @@
                                         <span className="text-[10px] text-gray-500 font-medium">{emocionDominante.texto}</span>
                                     </div>
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${
-                                        emocionDominante.emoji === '😊' ? 'bg-cryptoGreen/10 border border-cryptoGreen/20' :
+                                        emocionDominante.emoji === '🤩' ? 'bg-cryptoGreen/10 border border-cryptoGreen/20' :
                                         emocionDominante.emoji === '❔' ? 'bg-bgInput' : 'bg-cryptoRed/10 border border-cryptoRed/20'
                                     }`}>
                                         {emocionDominante.emoji}
@@ -418,10 +418,10 @@
                                     <span className="text-[10px] text-gray-500 font-bold uppercase px-1">Psicotrading (Estado Emocional)</span>
                                     <div className="grid grid-cols-4 gap-1.5">
                                         {[
-                                            { emoji: '😊', label: 'Calmo' },
+                                            { emoji: '🤩', label: 'Calmo' },
                                             { emoji: '😰', label: 'Ansioso' },
                                             { emoji: '😡', label: 'Enojado' },
-                                            { emoji: '😨', label: 'Miedo' }
+                                            { emoji: '😱', label: 'Miedo' }
                                         ].map(item => (
                                             <button 
                                                 key={item.emoji} 
@@ -429,8 +429,8 @@
                                                 onClick={() => setEmocion(item.emoji)}
                                                 className={`py-2 rounded-xl flex flex-col items-center justify-center border transition ${emocion === item.emoji ? 'bg-bgInput border-gold text-white' : 'bg-bgInput/40 border-transparent text-gray-400'}`}
                                             >
-                                                <span className="text-base">{item.emoji}</span>
-                                                <span className="text-[8px] font-bold uppercase mt-0.5">{item.label}</span>
+                                                <span className="text-xl">{item.emoji}</span>
+                                                <span className="text-[8px] font-bold uppercase mt-1 tracking-wide">{item.label}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -450,8 +450,8 @@
                                 {tradesDelMesActual.map(t => (
                                     <div key={t.id} className="bg-bgCard px-4 py-3 rounded-xl border border-gray-800 flex justify-between items-center">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-base bg-bgInput/60 p-1.5 rounded-lg flex items-center justify-center w-7 h-7" title="Sensación al operar">
-                                                {t.emocion || '😊'}
+                                            <span className="text-lg bg-bgInput/60 p-1 rounded-lg flex items-center justify-center w-8 h-8" title="Sensación al operar">
+                                                {t.emocion || '🤩'}
                                             </span>
                                             <span className="text-xs font-black text-white">{t.activo} (Día {t.dia})</span>
                                         </div>
@@ -482,6 +482,3 @@
     </script>
 </body>
 </html>
-      
-                                 
-                              
